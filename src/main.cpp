@@ -14,15 +14,17 @@ void GameLoop()
 	{
 		ClearBackground(RAYWHITE);
 		DrawText("Hello :)", 100, 100, 64, RED);
+		DrawFPS(10, 10);
 	}
 	EndDrawing();
 }
 
 int main()
 {
+	SetConfigFlags(FLAG_VSYNC_HINT);
 	InitWindow(1280, 720, "Jammin");
-	SetTargetFPS(60);
 
+	// The browser wants to control the animation loop on the web.
 	#ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(GameLoop, 0, false);
 	#else
