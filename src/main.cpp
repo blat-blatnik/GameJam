@@ -5,6 +5,11 @@
 
 void GameLoop()
 {
+	if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT))
+	{
+		ToggleBorderlessWindowed();
+	}
+
 	BeginDrawing();
 	{
 		ClearBackground(RAYWHITE);
@@ -21,9 +26,6 @@ int main()
 	#ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(GameLoop, 0, false);
 	#else
-	while (not WindowShouldClose())
-	{
-		GameLoop();
-	}
+	while (not WindowShouldClose()) GameLoop();
 	#endif
 }
