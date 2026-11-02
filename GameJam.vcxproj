@@ -193,6 +193,9 @@
     <ClInclude Include="src\raymath.h" />
     <ClInclude Include="src\rlgl.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="art\placeholder.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
