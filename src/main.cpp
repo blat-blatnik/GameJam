@@ -6,11 +6,18 @@ int main()
 	SetTargetFPS(60);
 	while (not WindowShouldClose())
 	{
+		if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT) )
+		{
+			ToggleBorderlessWindowed();
+		}
+		
 		BeginDrawing();
 		{
 			ClearBackground(RAYWHITE);
 			DrawText("Hello :)", 100, 100, 64, RED);
 		}
 		EndDrawing();
+
+		
 	}
 }
