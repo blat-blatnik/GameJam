@@ -1,5 +1,5 @@
 rem # Compile for the web using Emscripten.
-rem # Assumes that the Emscripten SDK (emsdk) is on you PATH.
+rem # Assumes that the Emscripten SDK (emsdk) is on your PATH.
 rem # https://github.com/raysan5/raylib/wiki/Working-for-Web-(HTML5)
 
 @echo off
