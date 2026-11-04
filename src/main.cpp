@@ -1,25 +1,4 @@
-#include "raylib.h"
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#include <emscripten/html5.h>
-#endif
-
-void ToggleFullscreen_FixedForWeb()
-{
-	// Raylib's ToggleFullscreen doesn't work on Web for some reason.
-	#ifdef __EMSCRIPTEN__
-	{
-		EmscriptenFullscreenChangeEvent status;
-		emscripten_get_fullscreen_status(&status);
-		if (not status.isFullscreen)
-			emscripten_request_fullscreen("#canvas", true);
-		else
-			emscripten_exit_fullscreen();
-	}
-	#else
-	ToggleBorderlessWindowed();
-	#endif
-}
+#include "utils.h"
 
 void GameLoop()
 {
