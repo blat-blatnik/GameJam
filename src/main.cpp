@@ -40,8 +40,35 @@ void GameLoop()
 
 int main()
 {
+	// Typically working directory on windows starts as the EXE directory, but during dev that's in bin/Debug/Game.exe, and it could change.
+	// Better to always start from project root directory.
+	#if DEV_MODE
+	{
+		ChangeDirectory(GetApplicationDirectory());
+		for (int attempt = 0; attempt < 3 and not DirectoryExists("art"); attempt++)
+			ChangeDirectory("..");
+	}
+	#endif
+
+	// Initialize raylib.
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
 	InitWindow(1280, 720, "Jammin");
+
+	// Load and apply previous window placement.
+	struct WindowPlacement
+	{
+		Rectangle rectangle;
+		bool maximized;
+	};
+	int fileSize;
+	WindowPlacement* prevPlacement = (WindowPlacement*)LoadFileData("window.bin", &fileSize);
+	if (prevPlacement)
+	{
+		SetWindowPosition((int)prevPlacement->rectangle.x, (int)prevPlacement->rectangle.y);
+		SetWindowSize((int)prevPlacement->rectangle.width, (int)prevPlacement->rectangle.height);
+		if (prevPlacement->maximized) MaximizeWindow();
+		MemFree(prevPlacement);
+	}
 
 	// The browser wants to control the animation loop on the web.
 	#ifdef __EMSCRIPTEN__
@@ -49,4 +76,13 @@ int main()
 	#else
 	while (not WindowShouldClose()) GameLoop();
 	#endif
+
+	// Save window placement for next run.
+	WindowPlacement placement = {};
+	placement.rectangle.x = GetWindowPosition().x;
+	placement.rectangle.y = GetWindowPosition().y;
+	placement.rectangle.width = (float)GetScreenWidth(); // This is window width, not screen width. Poor naming by Raylib .
+	placement.rectangle.height = (float)GetScreenHeight();
+	placement.maximized = IsWindowMaximized();
+	SaveFileData("window.bin", &placement, sizeof placement);
 }
