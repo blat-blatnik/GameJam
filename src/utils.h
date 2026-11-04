@@ -180,7 +180,7 @@ struct ClipContext
 	float clipStart; // The start time of the next clip.
 };
 
-float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normalized time inside the current clip, and advance to the next clip.
+inline float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normalized time inside the current clip, and advance to the next clip.
 {
 	float t0 = ctx->clipStart;
 	float t1 = t0 + duration;
@@ -193,7 +193,7 @@ float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normalized time
 
 // Windowing
 
-void ToggleFullscreen_FixedForWeb()
+inline void ToggleFullscreen_FixedForWeb()
 {
 	// Raylib's ToggleFullscreen doesn't work on Web for some reason.
 	#ifdef __EMSCRIPTEN__
