@@ -44,6 +44,7 @@ int main()
 	// Initialize raylib.
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
 	InitWindow(1280, 720, "Jammin");
+	SetExitKey(0); // prevent exiting by pressing esc
 
 	// Load and apply previous window placement.
 	struct WindowPlacement
