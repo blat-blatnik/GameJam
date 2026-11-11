@@ -1,5 +1,7 @@
 #include "utils.h"
-
+#define RAYGUI_IMPLEMENTATION
+#pragma warning(disable:4996)
+#include "raygui.h"
 void GameLoop()
 {
 	if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT))
@@ -10,7 +12,17 @@ void GameLoop()
 		ClearBackground(RAYWHITE);
 		DrawText("Hello :)", 100, 100, 64, RED);
 		DrawFPS(10, 10);
+	static bool showMessageBox = false;
+		if (GuiButton({ 24, 24, 120, 30 }, "#191#Show Message")) showMessageBox = true;
 
+		if (showMessageBox)
+		{
+			int btnActive = -1;
+			GuiMessageBox({ 85, 70, 250, 100 },
+				"#191#Message Box", "Hi! This is a message!", "Nice;Cool", &btnActive);
+
+			if (btnActive >= 0) showMessageBox = false;
+		}
 		Vector2 pos = GetMousePosition();
 		DrawCircleV(pos, 20, BLUE);
 	}
