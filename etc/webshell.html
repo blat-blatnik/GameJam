@@ -86,9 +86,9 @@
 		<canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 
 		<script type='text/javascript'>
-			val statusElement = document.getElementById('status');
-			val progressElement = document.getElementById('progress');
-			val spinnerElement = document.getElementById('spinner');
+			var statusElement = document.getElementById('status');
+			var progressElement = document.getElementById('progress');
+			var spinnerElement = document.getElementById('spinner');
 
 			var Module = {
 				print: function(text) { console.log(text); },
