@@ -1624,7 +1624,6 @@ static Vector3 ConvertRGBtoHSV(Vector3 rgb);                    // Convert color
 
 static void GuiTooltip(Rectangle controlRec);                   // Draw tooltip using control rec position
 static int GuiScrollBar(Rectangle bounds, int value, int minValue, int maxValue); // Scroll bar control, used by GuiScrollPanel()
-static int GuiFontIconBaking(Image *imFont, Font font, Rectangle *whiteRec); // Update font image atlas to append raygui icons
 
 static Color GuiFade(Color color, float alpha); // Fade color by an alpha factor
 
@@ -3887,7 +3886,7 @@ int GuiTabBar(Rectangle bounds, const char *text, int *hscroll, int *active)
 // Tab Bar control, using text entries list and returning focus entry
 // NOTE: In case of tab close result, consider focused tab
 // TODO: Replace GuiToggle() usage for custom implementation for the TABS
-int GuiTabBarEx(Rectangle bounds, char **text, int count, int *hscroll, int *active, int *focus)
+int GuiTabBarEx(Rectangle bounds, char **text, int count, int *, int *active, int *)
 {
     int result = RESULT_NONE;
     //GuiState state = guiState;
@@ -4001,7 +4000,7 @@ int GuiColorPanel(Rectangle bounds, const char *text, Color *color)
 
 // Color Bar Alpha control
 // NOTE: Returns alpha value normalized [0..1]
-int GuiColorBarAlpha(Rectangle bounds, const char *text, float *alpha)
+int GuiColorBarAlpha(Rectangle bounds, const char *, float *alpha)
 {
     #if !defined(RAYGUI_COLORBARALPHA_CHECKED_SIZE)
         #define RAYGUI_COLORBARALPHA_CHECKED_SIZE   10
@@ -4097,7 +4096,7 @@ int GuiColorBarAlpha(Rectangle bounds, const char *text, float *alpha)
 //      Color GuiColorBarSat() [WHITE->color]
 //      Color GuiColorBarValue() [BLACK->color], HSV/HSL
 //      float GuiColorBarLuminance() [BLACK->WHITE]
-int GuiColorBarHue(Rectangle bounds, const char *text, float *hue)
+int GuiColorBarHue(Rectangle bounds, const char *, float *hue)
 {
     int result = RESULT_NONE;
     GuiState state = guiState;
@@ -4209,7 +4208,7 @@ int GuiColorBarHue(Rectangle bounds, const char *text, float *hue)
 //      float GuiColorBarHue(Rectangle bounds, float value)
 // NOTE: bounds define GuiColorPanel() size
 // NOTE: this picker converts RGB to HSV, which can cause the Hue control to jump. If you have this problem, consider using the HSV variant instead
-int GuiColorPicker(Rectangle bounds, const char *text, Color *color)
+int GuiColorPicker(Rectangle bounds, const char *, Color *color)
 {
     int result = RESULT_NONE;
 
@@ -4241,7 +4240,7 @@ int GuiColorPicker(Rectangle bounds, const char *text, Color *color)
 //      int GuiColorBarAlpha(Rectangle bounds, const char *text, float *alpha)
 //      float GuiColorBarHue(Rectangle bounds, float value)
 // NOTE: bounds define GuiColorPanelHSV() size
-int GuiColorPickerHSV(Rectangle bounds, const char *text, Vector3 *colorHsv)
+int GuiColorPickerHSV(Rectangle bounds, const char *, Vector3 *colorHsv)
 {
     int result = RESULT_NONE;
 
@@ -4264,7 +4263,7 @@ int GuiColorPickerHSV(Rectangle bounds, const char *text, Vector3 *colorHsv)
 }
 
 // Color Panel control - HSV variant
-int GuiColorPanelHSV(Rectangle bounds, const char *text, Vector3 *colorHsv)
+int GuiColorPanelHSV(Rectangle bounds, const char *, Vector3 *colorHsv)
 {
     int result = RESULT_NONE;
     GuiState state = guiState;
@@ -4543,7 +4542,7 @@ int GuiTextInputBox(Rectangle bounds, const char *title, const char *message, ch
 // NOTE: Returns grid mouse-hover selected cell
 // About drawing lines at subpixel spacing, simple put, not easy solution:
 // REF: https://stackoverflow.com/questions/4435450/2d-opengl-drawing-lines-that-dont-exactly-fit-pixel-raster
-int GuiGrid(Rectangle bounds, const char *text, float spacing, int subdivs, Vector2 *mouseCell)
+int GuiGrid(Rectangle bounds, const char *, float spacing, int subdivs, Vector2 *mouseCell)
 {
     // Grid lines alpha amount
     #if !defined(RAYGUI_GRID_ALPHA)
@@ -4751,7 +4750,7 @@ void GuiLoadStyle(const char *fileName)
 
 // Load style from memory
 // WARNING: Binary files only
-void GuiLoadStyleFromMemory(const unsigned char *fileData, int dataSize)
+void GuiLoadStyleFromMemory(const unsigned char *fileData, int)
 {
     // Style File Structure (.rgs)
     // ------------------------------------------------------
@@ -5238,7 +5237,7 @@ char **GuiLoadIcons(const char *fileName, bool loadIconsName)
 
 // Load icons from memory
 // GLOBAL: Updates global variable: guiIconsPtr
-char **GuiLoadIconsFromMemory(const unsigned char *fileData, int dataSize, bool loadIconsName)
+char **GuiLoadIconsFromMemory(const unsigned char *fileData, int, bool loadIconsName)
 {
     // Icon File Structure (.rgi)
     // ------------------------------------------------------
@@ -6016,90 +6015,6 @@ static int GuiScrollBar(Rectangle bounds, int value, int minValue, int maxValue)
     //--------------------------------------------------------------------
 
     return value;
-}
-
-// Update font image atlas to append raygui icons
-static int GuiFontIconBaking(Image *imFont, Font font, Rectangle *whiteRec)
-{
-    int iconOffsetY = 0;
-
-    // Check max glyph rec y bottom position in the atlas image,
-    // to start drawing icons below that line
-    int maxGlyphRecY = 0;
-    for (int i = 0; i < font.glyphCount; i++)
-    {
-        if ((font.recs[i].y + font.recs[i].height) > maxGlyphRecY)
-            maxGlyphRecY = (int)font.recs[i].y + (int)font.recs[i].height;
-    }
-
-    int maxIconsPerLine = imFont->width/(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
-    int reqIconLines = RAYGUI_ICON_MAX_FONT_BACKED/maxIconsPerLine + RAYGUI_ICON_MAX_FONT_BACKED%maxIconsPerLine + 1; // One extra line
-    int reqHeight = reqIconLines*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
-
-    // Check if image requires scaling and how much
-    if ((maxGlyphRecY + reqHeight) > imFont->height)
-    {
-        int newImHeight = 1;
-        while (newImHeight < (maxGlyphRecY + reqHeight)) newImHeight <<= 1; // Round to next POT
-
-        char *newImData = (char *)RL_CALLOC(imFont->width*newImHeight*2, sizeof(char));
-        memcpy(newImData, imFont->data, imFont->width*imFont->height*2);
-        RL_FREE(imFont->data);
-
-        // Clear imFont bottom-right corner rec
-        for (int y = 0; y < 4; y++)
-            for (int x = 0; x < 4; x++)
-                ((unsigned short *)newImData)[(imFont->height - y - 1)*imFont->width + imFont->width - x - 1] = 0x0000;
-
-        imFont->data = newImData;
-        imFont->height = newImHeight;
-
-        // Set new image white corner and new white rec
-        for (int y = 0; y < 3; y++)
-            for (int x = 0; x < 3; x++)
-                ((unsigned short *)newImData)[(imFont->height - y - 1)*imFont->width + imFont->width - x - 1] = 0xffff;
-
-        *whiteRec = RAYGUI_CLITERAL(Rectangle){ (float)imFont->width - 2, (float)imFont->height - 2, 1, 1 };
-    }
-
-    // Calculate image offset positions to start drawing
-    // NOTE: For Y, look for a multiple of icon size + 2*padding, for better alignment
-    int offsetX = RAYGUI_ICON_FONT_ATLAS_PADDING;
-    int offsetY = ((maxGlyphRecY + (RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING - 1))/
-        (RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING))*(RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING) +
-        RAYGUI_ICON_FONT_ATLAS_PADDING;
-
-    iconOffsetY = offsetY - RAYGUI_ICON_FONT_ATLAS_PADDING;
-    unsigned short *pixels = (unsigned short *)imFont->data;
-
-    #define BIT_CHECK(a,b) ((a) & (1u<<(b)))
-
-    for (int iconId = 0; iconId < RAYGUI_ICON_MAX_FONT_BACKED; iconId++)
-    {
-        // Wrap to next line if next icon won't fit
-        if ((offsetX + (RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING)) > imFont->width)
-        {
-            offsetX = RAYGUI_ICON_FONT_ATLAS_PADDING;
-            offsetY += RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING;
-        }
-
-        for (int i = 0, y = 0; i < RAYGUI_ICON_DATA_ELEMENTS; i++)
-        {
-            unsigned int data = guiIconsPtr[iconId*RAYGUI_ICON_DATA_ELEMENTS + i];
-
-            for (int k = 0; k < 32; k++)
-            {
-                pixels[(offsetY + y)*imFont->width + offsetX + k%16] = (BIT_CHECK(data, k))? 0xffff : 0x00ff;
-
-                if ((k == 15) || (k == 31)) y++;
-            }
-        }
-
-        // Update current icon X position
-        offsetX += (RAYGUI_ICON_SIZE + 2*RAYGUI_ICON_FONT_ATLAS_PADDING);
-    }
-
-    return iconOffsetY;
 }
 
 // Split controls text into multiple strings

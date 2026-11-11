@@ -13,7 +13,7 @@ mkdir bin\web
 rem emsdk update
 rem emsdk install latest
 call emsdk activate latest
-call emcc %input% -o bin/web/index.html -Oz -flto -Wall -Wextra -L./lib -lraylib.web -lidbfs.js -sUSE_GLFW=3 -sTOTAL_MEMORY=33554432 -sENVIRONMENT="web,webview" -sEXPORTED_FUNCTIONS=_main --shell-file etc/webshell.html --preload-file art
+call emcc %input% -o bin/web/index.html -Oz -flto -std=gnu++20 -Wall -Wextra -Wno-missing-field-initializers -L./lib -lraylib.web -lidbfs.js -sUSE_GLFW=3 -sTOTAL_MEMORY=33554432 -sENVIRONMENT="web,webview" -sEXPORTED_FUNCTIONS=_main --shell-file etc/webshell.html --preload-file art
 
 rem copy /y "etc\icon.ico" "bin\web\favicon.ico"
 

@@ -1,7 +1,7 @@
 #include "utils.h"
 #define RAYGUI_IMPLEMENTATION
-#pragma warning(disable:4996)
 #include "raygui.h"
+
 void GameLoop()
 {
 	if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT))
@@ -23,6 +23,7 @@ void GameLoop()
 
 			if (btnActive >= 0) showMessageBox = false;
 		}
+
 		Vector2 pos = GetMousePosition();
 		DrawCircleV(pos, 20, BLUE);
 	}
