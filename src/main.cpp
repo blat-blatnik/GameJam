@@ -4,6 +4,7 @@
 
 #define FIXED_WIDTH 480 // 1920/4
 #define FIXED_HEIGHT 270
+#define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
 
 RenderTexture FixedRenderTexture; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 
@@ -15,18 +16,7 @@ void GameLoop()
 	BeginDrawing();
 	{
 		ClearBackground(BLACK);
-		
-		// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
-		BeginTextureMode(FixedRenderTexture);
-		{
-			ClearBackground(RAYWHITE);
-			DrawText("Hello :)", 100, 100, 64, RED);
 
-			Vector2 pos = GetMousePosition();
-			DrawCircleV(pos, 20, BLUE);
-		}
-		EndTextureMode();
-		
 		// Now scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
 		// This way we don't have to worry about actual window size at runtime.
 		float windowWidth = (float)GetRenderWidth();
@@ -39,9 +29,32 @@ void GameLoop()
 		#endif
 		float scaledWidth = FIXED_WIDTH * scale;
 		float scaledHeight = FIXED_HEIGHT * scale;
+		Vector2 scaledSize = {
+			FIXED_WIDTH * scale,
+			FIXED_HEIGHT * scale,
+		};
 		float remainingWidth = windowWidth - scaledWidth;
 		float remainingHeight = windowHeight - scaledHeight;
-		DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { remainingWidth / 2, remainingHeight / 2, scaledWidth, scaledHeight }, {}, 0, WHITE);
+		Vector2 innerWindowOffset = {
+			remainingWidth / 2,
+			remainingHeight / 2,
+		};
+		Vector2 mousePosInWindow = GetMousePosition();
+
+		// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
+		Vector2 mousePos = (mousePosInWindow - innerWindowOffset) / scaledSize * FIXED_SIZE;
+		
+		// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
+		BeginTextureMode(FixedRenderTexture);
+		{
+			ClearBackground(RAYWHITE);
+			DrawText("Hello :)", 100, 100, 64, RED);
+			DrawCircleV(mousePos, 20, BLUE);
+		}
+		EndTextureMode();
+		
+		// Draw game render texture in the center of the screen.
+		DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { innerWindowOffset.x, innerWindowOffset.y, scaledWidth, scaledHeight }, {}, 0, WHITE);
 
 		// Draw GUI on top of everything on the real window coordinates.
 		DrawFPS(10, 10);
