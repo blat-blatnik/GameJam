@@ -90,7 +90,9 @@ int main()
 
 	// Initialize raylib.
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
-	SetWindowMinSize(FIXED_WIDTH, FIXED_HEIGHT);
+	#ifndef __EMSCRIPTEN__
+	SetWindowMinSize(FIXED_WIDTH, FIXED_HEIGHT); // This doesn't work on web, IDFK why, but whatever :')
+	#endif
 	InitWindow(1280, 720, "Jammin");
 	SetExitKey(0); // prevent exiting by pressing esc
 	InitAudioDevice();
