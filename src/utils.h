@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
 #include <stdio.h>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -13,6 +15,7 @@
 constexpr auto Abs(auto x) { return x < 0 ? -x : x; }
 constexpr auto Min(auto a, auto b) { return a < b ? a : b; }
 constexpr auto Max(auto a, auto b) { return a > b ? a : b; }
+constexpr int ClampInt(int x, int min, int max) { return Min(Max(x, min), max); }
 
 // Vector
 
@@ -41,6 +44,37 @@ inline Color Grayscale(float gray)
 {
 	unsigned char l = (unsigned char)(Clamp(gray, 0, 1) * 255.0f + 0.5f);
 	return { l, l, l, 255 };
+}
+
+// Rectangle
+
+inline Vector2 RectangleCenter(Rectangle r)
+{
+	return { r.x + r.width * 0.5f, r.y + r.height * 0.5f };
+}
+inline Rectangle ExpandRectangle(Rectangle r, float left, float right, float up, float down)
+{
+	r.x -= left;
+	r.y -= up;
+	r.width += left + right;
+	r.height += up + down;
+	return r;
+}
+inline Rectangle ExpandRectangle(Rectangle r, float x, float y)
+{
+	r.x -= x / 2;
+	r.y -= y / 2;
+	r.width += x;
+	r.height += y;
+	return r;
+}
+inline Rectangle ExpandRectangle(Rectangle r, float expand)
+{
+	r.x -= expand / 2;
+	r.y -= expand / 2;
+	r.width += expand;
+	r.height += expand;
+	return r;
 }
 
 // Interpolation
@@ -190,6 +224,89 @@ inline float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normaliz
 	float normalized = t / duration;
 	return Clamp(normalized, 0, 1);
 }
+
+// List
+
+template<class T> struct List
+{
+	T* items;
+	int capacity;
+	int count;
+
+	T* Alloc(int numItems)
+	{
+		int minCapacity = count + numItems;
+		if (minCapacity > capacity)
+		{
+			capacity = Max(capacity, 64);
+			while (capacity < minCapacity) capacity *= 2;
+			items = (T*)MemRealloc(items, capacity * sizeof(T));
+		}
+		T* block = &items[count];
+		count += numItems;
+		return block;
+	}
+	void Add(T item)
+	{
+		if (count >= capacity)
+		{
+			capacity = Max(capacity * 2, 64);
+			items = (T*)MemRealloc(items, capacity * sizeof(T));
+		}
+		items[count++] = item;
+	}
+	T Pop()
+	{
+		assert(count > 0);
+		return items[--count];
+	}
+	void Free()
+	{
+		MemFree(items);
+		items = nullptr;
+		capacity = count = 0;
+	}
+	T& operator[](int index)
+	{
+		assert(index >= 0 and index < count);
+		return items[index];
+	}
+};
+
+// Font
+
+inline float GetLineHeight(Font font, float fontSize)
+{
+	return font.baseSize * (fontSize / font.baseSize);
+}
+
+// Script
+
+struct Paragraph
+{
+	char *speaker;
+	char *text; // [textLength] NOT 0 TERMINATED!
+	int textLength;
+	float duration;
+	List<int> codepoints;
+};
+
+struct Script
+{
+	Font font;
+	Font boldFont;
+	Font italicFont;
+	Font boldItalicFont;
+	int commandIndex; // Keeps track of which commands have already run so they don't run twice.
+	char *text;
+	List<char> stringPool; // This is where all expressions and speaker names are stored.
+	List<Paragraph> paragraphs;
+};
+
+Script LoadScript(const char* path, Font regular, Font bold, Font italic, Font boldItalic); // Loads a script from the given text file.
+void UnloadScript(Script* script); // Unloads all script memory and nullifies the script.
+void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time); // Draws the script paragraph at the given index. NOTE: This also executes console commands within the paragraph!
+const char* GetScriptExpression(Script script, int paragratphIndex, float time); // Gets the current speaker expression at the given time in the paragraph.
 
 // Windowing
 

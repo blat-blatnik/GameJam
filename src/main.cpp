@@ -50,11 +50,66 @@ void GameLoop()
 		BeginTextureMode(FixedRenderTexture);
 		{
 			ClearBackground(RAYWHITE);
-			DrawText("Hello :)", 100, 100, 64, RED);
-			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
+			//DrawText("Hello :)", 100, 100, 64, RED);
 
+			// Draw the script. Just a test for now.
+			static int ScriptParagraphIndex;
+			static float ScriptParagraphTime;
+			{
+				Script script = ExampleScript;
+				Paragraph paragraph = script.paragraphs[ScriptParagraphIndex];
+				const char* speaker = paragraph.speaker;
+				if (not speaker) speaker = "huh???";
+
+				ScriptParagraphTime += GetFrameTime();
+				float time = 20 * ScriptParagraphTime;
+				const char *expression = GetScriptExpression(script, ScriptParagraphIndex, time);
+
+				Rectangle textbox = { 20, 20, 400, 200 };
+				float TEXT_SIZE = 12;
+				// Portrait
+				{
+					Rectangle portraitBox = textbox;
+					portraitBox.x = 30;
+					portraitBox.width = 300;
+
+					Rectangle indented = ExpandRectangle(portraitBox, -5);
+					Rectangle textArea = ExpandRectangle(portraitBox, -15);
+					Rectangle dropShadow = { portraitBox.x + 10, portraitBox.y + 10, portraitBox.width, portraitBox.height };
+
+					DrawRectangleRounded(dropShadow, 0.1f, 5, BLACK);
+					DrawRectangleRounded(portraitBox, 0.1f, 5, WHITE);
+					DrawRectangleRounded(indented, 0.1f, 5, ColorBrightness(WHITE, -0.2f));
+
+					//DrawTextureCentered(*portrait, RectangleCenter(portraitBox), WHITE);
+				}
+				// Text
+				{
+					Rectangle indented = ExpandRectangle(textbox, -5);
+					Rectangle textArea = ExpandRectangle(textbox, -15);
+					Rectangle dropShadow = { textbox.x + 10, textbox.y + 10, textbox.width, textbox.height };
+
+					DrawRectangleRounded(dropShadow, 0.1f, 5, BLACK);
+					DrawRectangleRounded(textbox, 0.1f, 5, WHITE);
+					DrawRectangleRounded(indented, 0.1f, 5, ColorBrightness(WHITE, -0.2f));
+
+					const char* speakerString = TextFormat("[%s] [%s]", speaker, expression);
+					DrawTextEx(script.font, speakerString, { textArea.x + 1, textArea.y + 1 }, TEXT_SIZE, 1, ColorLerp(RED, BLACK, 0.8f));
+					DrawTextEx(script.font, speakerString, { textArea.x, textArea.y }, TEXT_SIZE, 1, RED);
+					float yAdvance = 2 * GetLineHeight(script.font, TEXT_SIZE);
+					textArea = ExpandRectangle(textArea, 0, 0, -yAdvance, 0);
+
+					DrawScriptParagraph(&script, ScriptParagraphIndex, textArea, TEXT_SIZE, PINK, ColorLerp(PINK, BLACK, 0.8f), time);
+				}
+			}
+
+			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+			{
 				PlaySound(PlaceholderSound);
+				ScriptParagraphIndex++;
+				ScriptParagraphTime = 0;
+			}
 		}
 		EndTextureMode();
 		

@@ -5226,6 +5226,7 @@ char **GuiLoadIcons(const char *fileName, bool loadIconsName)
         {
             fileData = (unsigned char *)RL_CALLOC(size, sizeof(unsigned char));
             // WARNING: File can be partially loaded but ignoring it for simplicity
+            assert(fileData != nullptr);
             dataSize = (int)fread(fileData, sizeof(unsigned char), size, rgiFile);
 
             guiIconsName = GuiLoadIconsFromMemory(fileData, dataSize, loadIconsName);

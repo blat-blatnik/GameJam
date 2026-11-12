@@ -1,5 +1,5 @@
 #pragma once
-#include "raylib.h"
+#include "utils.h"
 
 #ifndef X_TEXTURES
 #define X_TEXTURES(X)\
@@ -15,6 +15,13 @@
 
 #endif
 
+#ifndef X_SCRIPTS
+#define X_SCRIPTS(X)\
+	/* X(variable_name, filepath) */\
+	X(ExampleScript, "example-script.txt")\
+
+#endif
+
 // Globals
 
 #define DefineTexture(name, filepath) inline Texture name;
@@ -22,6 +29,9 @@ X_TEXTURES(DefineTexture)
 
 #define DefineSound(name, filepath) inline Sound name;
 X_SOUNDS(DefineSound)
+
+#define DefineScript(name, filepath) inline Script name;
+X_SCRIPTS(DefineScript)
 
 inline void LoadAllArt()
 {
@@ -32,4 +42,9 @@ inline void LoadAllArt()
 	#define LoadSound(name, filepath) name = LoadSound("art/" filepath);
 	X_SOUNDS(LoadSound);
 	#undef LoadSound
+
+	Font defaultFont = GetFontDefault();
+	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, defaultFont, defaultFont, defaultFont, defaultFont);
+	X_SCRIPTS(LoadScript);
+	#undef LoadScript
 }
