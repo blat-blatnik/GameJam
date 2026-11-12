@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\art.h" />
+    <ClInclude Include="src\game.h" />
     <ClInclude Include="src\raygui.h" />
     <ClInclude Include="src\raylib.h" />
     <ClInclude Include="src\raymath.h" />
