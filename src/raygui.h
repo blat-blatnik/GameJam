@@ -3888,6 +3888,8 @@ int GuiTabBar(Rectangle bounds, const char *text, int *hscroll, int *active)
 // TODO: Replace GuiToggle() usage for custom implementation for the TABS
 int GuiTabBarEx(Rectangle bounds, char **text, int count, int *, int *active, int *)
 {
+    assert(active != nullptr); // Supresss static analysis warning.
+
     int result = RESULT_NONE;
     //GuiState state = guiState;
 

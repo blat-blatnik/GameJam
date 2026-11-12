@@ -35,8 +35,8 @@
     <ClInclude Include="src\raygui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="art\placeholder.txt" />
+    <ClInclude Include="src\art.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

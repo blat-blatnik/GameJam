@@ -1,3 +1,4 @@
+#include "art.h"
 #include "utils.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -17,14 +18,14 @@ void GameLoop()
 	{
 		ClearBackground(BLACK);
 
-		// Now scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
+		// Scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
 		// This way we don't have to worry about actual window size at runtime.
 		float windowWidth = (float)GetRenderWidth();
 		float windowHeight = (float)GetRenderHeight();
 		float maxScaleX = Max(windowWidth / FIXED_WIDTH, 1);
 		float maxScaleY = Max(windowHeight / FIXED_HEIGHT, 1);
 		float scale = Min(maxScaleX, maxScaleY);
-		#if false
+		#if false // Force integer scaling.
 		scale = floorf(scale);
 		#endif
 		float scaledWidth = FIXED_WIDTH * scale;
@@ -49,7 +50,10 @@ void GameLoop()
 		{
 			ClearBackground(RAYWHITE);
 			DrawText("Hello :)", 100, 100, 64, RED);
-			DrawCircleV(mousePos, 20, BLUE);
+			DrawTextureV(PlaceholderTexture, mousePos, WHITE);
+
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+				PlaySound(PlaceholderSound);
 		}
 		EndTextureMode();
 		
@@ -89,6 +93,7 @@ int main()
 	SetWindowMinSize(FIXED_WIDTH, FIXED_HEIGHT);
 	InitWindow(1280, 720, "Jammin");
 	SetExitKey(0); // prevent exiting by pressing esc
+	InitAudioDevice();
 
 	// Load and apply previous window placement.
 	struct WindowPlacement
@@ -108,6 +113,9 @@ int main()
 
 	// Create fixed size render target.
 	FixedRenderTexture = LoadRenderTexture(FIXED_WIDTH, FIXED_HEIGHT);
+
+	// Load everything upfront.
+	LoadAllArt();
 
 	// The browser wants to control the animation loop on the web.
 	#ifdef __EMSCRIPTEN__

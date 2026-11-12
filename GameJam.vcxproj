@@ -107,7 +107,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <AdditionalDependencies>winmm.lib;lib\raylib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -129,7 +129,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <AdditionalDependencies>winmm.lib;lib\raylib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -154,7 +154,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <AdditionalDependencies>winmm.lib;lib\raylib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -179,7 +179,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <AdditionalDependencies>winmm.lib;lib\raylib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\raylib.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -189,14 +189,12 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\art.h" />
     <ClInclude Include="src\raygui.h" />
     <ClInclude Include="src\raylib.h" />
     <ClInclude Include="src\raymath.h" />
     <ClInclude Include="src\rlgl.h" />
     <ClInclude Include="src\utils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="art\placeholder.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
