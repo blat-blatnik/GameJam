@@ -5,6 +5,7 @@
 #define X_TEXTURES(X)\
 	/* X(variable_name, filepath) */\
 	X(PlaceholderTexture, "placeholder.png")\
+	X(GridTest, "gridtest.png")\
 
 #endif
 
