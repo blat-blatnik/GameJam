@@ -8,6 +8,7 @@
 #define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
 
 RenderTexture FixedRenderTexture; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
+Vector2 MousePos; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 
 void GameLoop()
 {
@@ -40,17 +41,17 @@ void GameLoop()
 			remainingWidth / 2,
 			remainingHeight / 2,
 		};
-		Vector2 mousePosInWindow = GetMousePosition();
 
 		// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
-		Vector2 mousePos = (mousePosInWindow - innerWindowOffset) / scaledSize * FIXED_SIZE;
+		MousePos = (GetMousePosition() - innerWindowOffset) / scaledSize * FIXED_SIZE;
+		MousePos = Vector2Clamp(MousePos, { 0, 0 }, FIXED_SIZE);
 		
 		// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
 		BeginTextureMode(FixedRenderTexture);
 		{
 			ClearBackground(RAYWHITE);
 			DrawText("Hello :)", 100, 100, 64, RED);
-			DrawTextureV(PlaceholderTexture, mousePos, WHITE);
+			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
 
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 				PlaySound(PlaceholderSound);
