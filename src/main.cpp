@@ -9,8 +9,10 @@
 
 #define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
 
+#define EDITOR
+
 RenderTexture FixedRenderTexture; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
-Vector2 MousePos; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
+Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
 
 void GameLoop()
@@ -94,7 +96,11 @@ void GameLoop()
 					for (uint32_t x = 0; x < gameState.grid.width; x++){
 						if (gameState.grid.tiles[x+y*gameState.grid.width] == GridTile_Floor)
 						{
-							DrawRectangleV(Vector2{x*16.f,y*16.f}, Vector2{16,16},DARKBLUE);
+							DrawTextureRec(GridTest,Rectangle{0,0,16,16},Vector2{x*16.f,y*16.f},WHITE);
+						}else
+						{
+							DrawTextureRec(GridTest,Rectangle{16*3,16*3,16,16},Vector2{x*16.f,y*16.f},WHITE);
+							
 						}
 					}
 				}
@@ -105,7 +111,7 @@ void GameLoop()
 			}
 		
 			// Draw the script. Just a test for now.
-			static int ScriptParagraphIndex {};
+			static int ScriptParagraphIndex = 1024;
 			static float ScriptParagraphTime{};
 			{
 				Script script = ExampleScript;
@@ -159,21 +165,36 @@ void GameLoop()
 			}
 
 			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
-			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+			/*if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			{
 				PlaySound(PlaceholderSound);
 				ScriptParagraphIndex++;
 				ScriptParagraphTime = 0;
-			}
+			}*/
 		}
 		EndTextureMode();
 		
 		// Draw game render texture in the center of the screen.
 		DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { innerWindowOffset.x, innerWindowOffset.y, scaledWidth, scaledHeight }, {}, 0, WHITE);
 
+#ifdef EDITOR
+    	static GridTile selectedTile = GridTile_Floor;
+		/*if (GuiButton(Rectangle{16,16,64,24},"Tile type1"))
+		{
+			selectedTile = GridTile_Floor;
+		}*/
+    	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    	{
+    		setGridTile(&gameState.grid,(uint32_t)nearbyintf(MousePos.x/16.f),(uint32_t)nearbyintf(MousePos.y/16.f), selectedTile);
+    	}
 
-        // Draw GUI on top of everything on the real window coordinates.
+    	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+    	{
+    		setGridTile(&gameState.grid,(uint32_t)nearbyintf(MousePos.x/16.f),(uint32_t)nearbyintf(MousePos.y/16.f), GridTile_None);
+    	}
+    	// Draw GUI on top of everything on the real window coordinates.
         DrawFPS(10, 10);
+#endif
     }
     EndDrawing();
 }
