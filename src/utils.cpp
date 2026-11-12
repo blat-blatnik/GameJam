@@ -435,7 +435,7 @@ void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 				int index = GetGlyphIndex(font, codepoint);
 				DrawTextCodepoint(font, codepoint, { x + 1, y + 1 }, fontSize, shadowColor);
 				DrawTextCodepoint(font, codepoint, { x, y }, fontSize, color);
-				x += GetAdvance(font, fontSize, index) + 1;
+				x += GetAdvance(font, fontSize, index);
 				t += 1;
 			}
 		}

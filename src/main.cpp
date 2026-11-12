@@ -109,51 +109,53 @@ void GameLoop()
 			static float ScriptParagraphTime{};
 			{
 				Script script = ExampleScript;
-				if (ScriptParagraphIndex<script.paragraphs.count )
+				if (ScriptParagraphIndex < script.paragraphs.count)
 				{
 					Paragraph paragraph = script.paragraphs[ScriptParagraphIndex];
 					const char* speaker = paragraph.speaker;
-					if (not speaker) speaker = "huh???";
+					if (not speaker) speaker = "default speaker";
 
 					ScriptParagraphTime += GetFrameTime();
 					float time = 20 * ScriptParagraphTime;
-					const char *expression = GetScriptExpression(script, ScriptParagraphIndex, time);
+					const char* expression = GetScriptExpression(script, ScriptParagraphIndex, time);
 
-					Rectangle textbox = { 20, 20, 400, 200 };
-					float TEXT_SIZE = 12;
-					// Portrait
-					{
-						Rectangle portraitBox = textbox;
-						portraitBox.x = 30;
-						portraitBox.width = 300;
-
-						Rectangle indented = ExpandRectangle(portraitBox, -5);
-						Rectangle textArea = ExpandRectangle(portraitBox, -15);
-						Rectangle dropShadow = { portraitBox.x + 10, portraitBox.y + 10, portraitBox.width, portraitBox.height };
-
-						DrawRectangleRounded(dropShadow, 0.1f, 5, BLACK);
-						DrawRectangleRounded(portraitBox, 0.1f, 5, WHITE);
-						DrawRectangleRounded(indented, 0.1f, 5, ColorBrightness(WHITE, -0.2f));
-
-						//DrawTextureCentered(*portrait, RectangleCenter(portraitBox), WHITE);
-					}
+					float textboxWidth = 30;
+					float textboxHeight = 100;
+					Rectangle textbox = { textboxWidth, FIXED_HEIGHT - textboxHeight - 20, FIXED_WIDTH - 2 * textboxWidth, textboxHeight };
+					float TEXT_SIZE = 9;
+					//// Portrait
+					//{
+					//	Rectangle portraitBox = textbox;
+					//	portraitBox.x = 30;
+					//	portraitBox.width = 300;
+					//
+					//	Rectangle indented = ExpandRectangle(portraitBox, -5);
+					//	Rectangle textArea = ExpandRectangle(portraitBox, -15);
+					//	Rectangle dropShadow = { portraitBox.x + 10, portraitBox.y + 10, portraitBox.width, portraitBox.height };
+					//
+					//	DrawRectangleRounded(dropShadow, 0.1f, 5, BLACK);
+					//	DrawRectangleRounded(portraitBox, 0.1f, 5, WHITE);
+					//	DrawRectangleRounded(indented, 0.1f, 5, ColorBrightness(WHITE, -0.2f));
+					//
+					//	//DrawTextureCentered(*portrait, RectangleCenter(portraitBox), WHITE);
+					//}
 					// Text
 					{
 						Rectangle indented = ExpandRectangle(textbox, -5);
 						Rectangle textArea = ExpandRectangle(textbox, -15);
-						Rectangle dropShadow = { textbox.x + 10, textbox.y + 10, textbox.width, textbox.height };
+						Rectangle dropShadow = { textbox.x + 4, textbox.y + 4, textbox.width, textbox.height };
 
-						DrawRectangleRounded(dropShadow, 0.1f, 5, BLACK);
-						DrawRectangleRounded(textbox, 0.1f, 5, WHITE);
-						DrawRectangleRounded(indented, 0.1f, 5, ColorBrightness(WHITE, -0.2f));
+						DrawRectangleRounded(dropShadow, 0.0f, 5, BLACK);
+						DrawRectangleRounded(textbox, 0.0f, 5, WHITE);
+						DrawRectangleRounded(indented, 0.0f, 5, ColorBrightness(WHITE, -0.2f));
 
 						const char* speakerString = TextFormat("[%s] [%s]", speaker, expression);
-						DrawTextEx(script.font, speakerString, { textArea.x + 1, textArea.y + 1 }, TEXT_SIZE, 1, ColorLerp(RED, BLACK, 0.8f));
-						DrawTextEx(script.font, speakerString, { textArea.x, textArea.y }, TEXT_SIZE, 1, RED);
+						DrawTextEx(script.font, speakerString, { textArea.x + 1, textArea.y + 1 }, TEXT_SIZE, 0, ColorLerp(RED, BLACK, 0.8f));
+						DrawTextEx(script.font, speakerString, { textArea.x, textArea.y }, TEXT_SIZE, 0, RED);
 						float yAdvance = 2 * GetLineHeight(script.font, TEXT_SIZE);
 						textArea = ExpandRectangle(textArea, 0, 0, -yAdvance, 0);
 
-						DrawScriptParagraph(&script, ScriptParagraphIndex, textArea, TEXT_SIZE, PINK, ColorLerp(PINK, BLACK, 0.8f), time);
+						DrawScriptParagraph(&script, ScriptParagraphIndex, textArea, TEXT_SIZE, RED, ColorLerp(PINK, BLACK, 0.8f), time);
 					}
 				}
 			}
@@ -170,7 +172,6 @@ void GameLoop()
 		
 		// Draw game render texture in the center of the screen.
 		DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { innerWindowOffset.x, innerWindowOffset.y, scaledWidth, scaledHeight }, {}, 0, WHITE);
-
 
         // Draw GUI on top of everything on the real window coordinates.
         DrawFPS(10, 10);

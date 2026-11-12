@@ -15,6 +15,13 @@
 
 #endif
 
+#ifndef X_FONTS
+#define X_FONTS(X)\
+	/* X(variable_name, filepath, size) */\
+	X(DialogueBoxFont, "pressstart2p.ttf", 9)\
+
+#endif
+
 #ifndef X_SCRIPTS
 #define X_SCRIPTS(X)\
 	/* X(variable_name, filepath) */\
@@ -30,6 +37,9 @@ X_TEXTURES(DefineTexture)
 #define DefineSound(name, filepath) inline Sound name;
 X_SOUNDS(DefineSound)
 
+#define DefineFont(name, filepath, size) inline Font name;
+X_FONTS(DefineFont)
+
 #define DefineScript(name, filepath) inline Script name;
 X_SCRIPTS(DefineScript)
 
@@ -43,8 +53,12 @@ inline void LoadAllArt()
 	X_SOUNDS(LoadSound);
 	#undef LoadSound
 
+	#define LoadFont(name, filepath, size) name = LoadFontEx("art/" filepath, size, nullptr, 0);
+	X_FONTS(LoadFont);
+	#undef LoadFont
+
 	Font defaultFont = GetFontDefault();
-	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, defaultFont, defaultFont, defaultFont, defaultFont);
+	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, DialogueBoxFont, DialogueBoxFont, DialogueBoxFont, DialogueBoxFont);
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 }
