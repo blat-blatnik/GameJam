@@ -1,14 +1,14 @@
 #pragma once
 #include "raylib.h"
 
-#ifndef TEXTURE_TABLE
+#ifndef X_TEXTURES
 #define X_TEXTURES(X)\
 	/* X(variable_name, filepath) */\
 	X(PlaceholderTexture, "placeholder.png")\
 
 #endif
 
-#ifndef SOUND_TABLE
+#ifndef X_SOUNDS
 #define X_SOUNDS(X)\
 	/* X(variable_name, filepath) */\
 	X(PlaceholderSound, "placeholder.wav")\
