@@ -282,6 +282,15 @@ void GameLoop()
 				}
 			}
 		}
+		if (IsKeyPressed(KEY_P))
+		{
+			saveLevel(levelName,&gameState.grid);
+			
+		}
+		if (IsKeyPressed(KEY_L))
+		{
+			loadLevel(levelName,&gameState);
+		}
 
 		// Draw GUI on top of everything on the real window coordinates.
 		DrawFPS(10, 10);

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cstdint>
+const char* levelName ="bathroom.bin";
 
 enum GridTile: uint32_t
 {
@@ -59,6 +60,10 @@ inline GridTile getGridTile(Grid* grid, uint32_t x, uint32_t y,uint32_t layer)
     }
     return result;
 }
+inline uint32_t getGridSize(Grid* grid)
+{
+    return grid->width* grid->height*grid->layers *sizeof(GridTile);
+}
 inline bool setGridTile(Grid* grid,  uint32_t x, uint32_t y,uint32_t layer, GridTile tile)
 {
     bool result=true;
@@ -78,15 +83,59 @@ inline bool setGridTile(Grid* grid,  uint32_t x, uint32_t y,uint32_t layer, Grid
     return result;
 }
 
+bool saveLevel(const char * fileName, Grid* grid)
+{
+    bool success=true;
+    FILE* file {};
+    fopen_s(&file,fileName,"wb");
+    success= file!=nullptr;
+    fwrite(grid,sizeof(Grid),1,file);
+    fwrite(grid->tiles,getGridSize(grid),1,file);
+    fclose(file);
+    return success;
+}
+
+bool loadLevel(const char* fileName, GameState* gameState)
+{
+    bool result=true;
+    if (FileExists(fileName))
+    {
+        int fileSize = 0;
+        uint8_t* data = LoadFileData(levelName,  &fileSize);
+        if (fileSize >=sizeof(Grid))
+        {
+            gameState->grid = *(Grid*)data;
+            if (fileSize == sizeof(Grid)+ gameState->grid.width*gameState->grid.height*gameState->grid.layers *sizeof(GridTile))
+            {
+                gameState->grid.tiles = (GridTile*)(data+sizeof(Grid));
+            }else
+            {
+                result=false;
+            }
+        }else
+        {
+            result = false;
+        }
+            
+    }else
+    {
+        result = false;
+    }
+    return result ;
+}
+
 static bool initializeGameState(GameState* gameState)
 {
     bool success = gameState != nullptr;
     if (success)
     {
-        gameState->grid=initializeGrid(480/16+1, 270/16+1,2);
-        setGridTile(&gameState->grid, 6, 9,0, GridTile_Floor);
-        setGridTile(&gameState->grid, 8, 2,0, GridTile_Floor);
-        setGridTile(&gameState->grid, 4, 3,0, GridTile_Floor);
+        if (!loadLevel(levelName, gameState)){
+            success =true;
+            gameState->grid=initializeGrid(480/16+1, 270/16+1,2);
+            setGridTile(&gameState->grid, 6, 9,0, GridTile_Floor);
+            setGridTile(&gameState->grid, 8, 2,0, GridTile_Floor);
+            setGridTile(&gameState->grid, 4, 3,0, GridTile_Floor);
+        }
     }
     return success;
 }
