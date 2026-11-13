@@ -147,18 +147,22 @@ void GameLoop()
 
 				
 		
-					// Update and render script. Just a test for now.
-					if (CurrentScript)
-					{
-						// Draw background.
-						if (ScriptFadeInOutTexture.id)
-						{
-							DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, BLACK);
-							Color fadeTint = ColorAlpha(WHITE, ScriptFadeInOutTime);
-							DrawTexture(ScriptFadeInOutTexture, 0, 0, fadeTint);
-							ScriptFadeInOutTime += GetFrameTime() * ScriptFadeInOutIncrement;
-							ScriptFadeInOutTime = Clamp(ScriptFadeInOutTime, 0, 1);
-						}
+			// Update and render script. Just a test for now.
+			if (CurrentScript)
+			{
+				// Draw background.
+				float fadeAlpha = 1;
+				if (ScriptFadeInOutTexture.id)
+				{
+					fadeAlpha = Clamp(ScriptFadeInOutTime, 0, 1);
+					fadeAlpha = floorf(fadeAlpha * 6) / 6; // Quantize
+
+					DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, BLACK);
+					Color fadeTint = ColorAlpha(WHITE, fadeAlpha);
+					DrawTexture(ScriptFadeInOutTexture, 0, 0, fadeTint);
+					ScriptFadeInOutTime += GetFrameTime() * ScriptFadeInOutIncrement;
+					ScriptFadeInOutTime = Clamp(ScriptFadeInOutTime, 0, 1);
+				}
 
 						Paragraph paragraph = CurrentScript->paragraphs[ScriptParagraphIndex];
 						const char* speaker = paragraph.speaker;
