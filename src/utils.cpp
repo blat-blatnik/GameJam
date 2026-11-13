@@ -238,27 +238,23 @@ Script LoadScript(const char *path, Font regular, Font bold, Font italic, Font b
 		// - or after 2 consecutive newlines with nothing but whitespace between them.
 		int cursor;
 		int lastNonWhitespace = 0;
-		for (cursor = 1;; ++cursor)
+		for (cursor = 1; text[cursor] != '\0'; cursor++)
 		{
-			if (!text[cursor])
-				break;
-
 			if (not isspace(text[cursor]))
 			{
 				lastNonWhitespace = cursor;
 			}
 			else if (text[cursor] == '\n')
 			{
-				++cursor;
 				bool consecutiveNewline = false;
-				while (isspace(text[cursor]))
+				while (isspace(text[cursor + 1]))
 				{
-					if (text[cursor] == '\n')
+					if (text[cursor + 1] == '\n')
 					{
 						consecutiveNewline = true;
 						break;
 					}
-					++cursor;
+					cursor++;
 				}
 				if (consecutiveNewline)
 					break;

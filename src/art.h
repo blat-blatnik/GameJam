@@ -19,8 +19,9 @@
 
 #ifndef X_FONTS
 #define X_FONTS(X)\
-	/* X(variable_name, filepath, size) */\
-	X(DialogueBoxFont, "pressstart2p.ttf", 9)\
+	/* X(variable_name, filepath) */\
+	X(Arial8Font, "arial8.png")\
+	X(AsepriteFont, "aseprite-font.png")\
 
 #endif
 
@@ -40,14 +41,19 @@ X_TEXTURES(DefineTexture)
 #define DefineSound(name, filepath) inline Sound name;
 X_SOUNDS(DefineSound)
 
-#define DefineFont(name, filepath, size) inline Font name;
+#define DefineFont(name, filepath) inline Font name;
 X_FONTS(DefineFont)
 
 #define DefineScript(name, filepath) inline Script name;
 X_SCRIPTS(DefineScript)
 
-static Font Arial8Font;
-static Font AsepriteFont;
+inline Font LoadPixelFont(const char* filepath)
+{
+	Image image = LoadImage(filepath);
+	Font font = LoadFontFromImage(image, MAGENTA, ' ');
+	SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
+	return font;
+}
 
 inline void LoadAllArt()
 {
@@ -59,17 +65,9 @@ inline void LoadAllArt()
 	X_SOUNDS(LoadSound);
 	#undef LoadSound
 
-	#define LoadFont(name, filepath, size) name = LoadFontEx("art/" filepath, size, nullptr, 0);
+	#define LoadFont(name, filepath) name = LoadPixelFont("art/" filepath);
 	X_FONTS(LoadFont);
 	#undef LoadFont
-
-	Image arial8FontImage = LoadImage("art/arial8.png");
-	Arial8Font = LoadFontFromImage(arial8FontImage, MAGENTA, ' ');
-	SetTextureFilter(Arial8Font.texture, TEXTURE_FILTER_POINT);
-
-	Image asepriteFontImage = LoadImage("art/aseprite-font.png");
-	AsepriteFont = LoadFontFromImage(asepriteFontImage, MAGENTA, ' ');
-	SetTextureFilter(AsepriteFont.texture, TEXTURE_FILTER_POINT);
 
 	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
 	X_SCRIPTS(LoadScript);
