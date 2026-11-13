@@ -15,11 +15,10 @@ enum Mode :uint32_t
 	Mode_Paint
 };
 
+static Mode mode = Mode_Normal;
 #ifdef DEV_MODE
 static uint32_t selectedTextureIndex = 0;
 static uint32_t selectedLayer = 0;
-static Mode mode = Mode_Normal;
-
 #endif
 
 RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.

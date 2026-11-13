@@ -86,8 +86,7 @@ inline bool setGridTile(Grid* grid,  uint32_t x, uint32_t y,uint32_t layer, Grid
 bool saveLevel(const char * fileName, Grid* grid)
 {
     bool success=true;
-    FILE* file {};
-    fopen_s(&file,fileName,"wb");
+    FILE* file =fopen(fileName,"wb");
     success= file!=nullptr;
     fwrite(grid,sizeof(Grid),1,file);
     fwrite(grid->tiles,getGridSize(grid),1,file);
