@@ -289,11 +289,40 @@ inline float GetLineHeight(Font font, float fontSize)
 {
 	return font.baseSize * (fontSize / font.baseSize);
 }
+inline Font LoadPixelFont(const char* filepath)
+{
+	Image image = LoadImage(filepath);
+	Font font = LoadFontFromImage(image, MAGENTA, ' ');
+	SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
+	return font;
+}
+
+// Text
+
+inline void DrawTextCentered(Font font, const char* text, Vector2 center, float fontSize, float spacing, Color tint)
+{
+	Vector2 size = MeasureTextEx(font, text, fontSize, spacing);
+	DrawTextEx(font, text, center - size / 2, fontSize, spacing, tint);
+}
 
 // Assets
 
 Texture GetTexture(const char* filepath);
 Sound GetSound(const char* filepath);
+
+// Slideshow
+
+struct Slide
+{
+	List<Texture> frames;
+	List<char*> lines;
+};
+struct Slideshow
+{
+	List<Slide> slides;
+};
+
+Slideshow LoadSlideshow(const char* filepath);
 
 // Script
 

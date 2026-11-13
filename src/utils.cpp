@@ -46,6 +46,53 @@ Sound GetSound(const char* filepath)
 	return *sound;
 }
 
+// Slideshow
+
+Slideshow LoadSlideshow(const char* filepath)
+{
+	Slideshow slideshow = {};
+
+	char* fileText = LoadFileText(filepath);
+
+	int numLines;
+	char** lines = LoadTextLines(fileText, &numLines);
+
+	Slide slide = {};
+	for (int lineIndex = 0; lineIndex < numLines; lineIndex++)
+	{
+		char* line = lines[lineIndex];
+		if (*line == '\0' and (slide.lines.count > 0 or slide.frames.count > 0))
+		{
+			slideshow.slides.Add(slide);
+			slide = {};
+		}
+		else if (*line == ':')
+		{
+			const char* frameFilenamesString = line + 1;
+			int numFrames;
+			char** frameFilenames = TextSplit(frameFilenamesString, ',', &numFrames);
+			for (int i = 0; i < numFrames; i++)
+				slide.frames.Add(GetTexture(frameFilenames[i]));
+		}
+		else
+		{
+			int size = TextLength(line) + 1;
+			char* copy = (char*)MemAlloc(size);
+			memcpy(copy, line, size);
+			slide.lines.Add(copy);
+		}
+	}
+	if (slide.lines.count > 0 or slide.frames.count > 0)
+	{
+		slideshow.slides.Add(slide);
+		slide = {};
+	}
+
+	UnloadTextLines(lines, numLines);
+	UnloadFileText(fileText);
+	return slideshow;
+}
+
 // Script
 // 
 // I took this code from an old failed game jam project I worked on. Here is the original comment I added to that code haha:

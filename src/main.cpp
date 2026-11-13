@@ -26,6 +26,24 @@ RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH 
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
 
+// Slideshow stuff
+
+Slideshow* CurrentSlideshow = &IntroSlideshow;
+int CurrentSlideIndex;
+float CurrentSlideAlpha;
+float CurrentSlideAlphaIncrement = +1.5f;
+
+inline bool IsDialogAdvanceButtonPressed()
+{
+	return
+		IsKeyPressed(KEY_ENTER) or
+		IsKeyPressed(KEY_SPACE) or
+		IsKeyPressed(KEY_E) or
+		IsKeyPressed(KEY_F) or
+		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
+		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+}
+
 // Dialog script stuff
 
 Script* CurrentScript = nullptr;
@@ -52,11 +70,6 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
-
-// Slideshow
-
-char* CurrentSlideshow = IntroSlideshow;
-int CurrentSlideshowSlideIndex;
 
 // Game
 
@@ -171,7 +184,53 @@ void GameLoop()
 				DrawRectangleV(gameState.player.position, Vector2{16, 32}, DARKGREEN);
 			}
 
+			// Update and render slideshow.
+			if (CurrentSlideshow)
+			{
+				DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, BLACK);
 
+				CurrentSlideAlpha += GetFrameTime() * CurrentSlideAlphaIncrement;
+				CurrentSlideAlpha = Clamp(CurrentSlideAlpha, 0, 1);
+
+				float fadeAlpha = floorf(CurrentSlideAlpha * 6) / 6; // Quantize
+				Color fadeTint = ColorAlpha(WHITE, fadeAlpha);
+
+				// Draw the slide picture.
+				Slide slide = CurrentSlideshow->slides[CurrentSlideIndex];
+				Texture frame = slide.frames[0];
+				int padX = (FIXED_WIDTH - frame.width) / 2;
+				int padY = (FIXED_HEIGHT - frame.height) / 2;
+				DrawTexture(frame, padX, padY, fadeTint);
+
+				// Draw the slide text.
+				float textCursorY = 200;
+				for (int i = 0; i < slide.lines.count; i++)
+				{
+					const char* line = slide.lines[i];
+					DrawTextCentered(Arial8Font, line, { FIXED_WIDTH / 2, textCursorY }, 13, 0, fadeTint);
+					textCursorY += GetLineHeight(Arial8Font, 13);
+				}
+
+				if (CurrentSlideAlphaIncrement > 0)
+				{
+					bool advance = IsDialogAdvanceButtonPressed();
+					if (CurrentSlideAlpha >= 1 and advance)
+						CurrentSlideAlphaIncrement = -CurrentSlideAlphaIncrement;
+				}
+				else
+				{
+					if (CurrentSlideAlpha <= 0)
+					{
+						CurrentSlideIndex++;
+						CurrentSlideAlphaIncrement = -CurrentSlideAlphaIncrement;
+						if (CurrentSlideIndex >= CurrentSlideshow->slides.count)
+						{
+							CurrentSlideshow = nullptr;
+							CurrentSlideAlpha = 0;
+						}
+					}
+				}
+			}
 
 			// Update and render script. Just a test for now.
 			if (CurrentScript)
@@ -212,13 +271,7 @@ void GameLoop()
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 
 				// Advance on any of these inputs.
-				bool advance =
-					IsKeyPressed(KEY_ENTER) or
-					IsKeyPressed(KEY_SPACE) or
-					IsKeyPressed(KEY_E) or
-					IsKeyPressed(KEY_F) or
-					IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
-					IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+				bool advance = IsDialogAdvanceButtonPressed();
 				if (advance or (ScriptFadeInOutIncrement < 0 and ScriptFadeInOutTime <= 0))
 				{
 					if (doneWithScriptParagraph and ScriptFadeInOutTime <= 0)

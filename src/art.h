@@ -54,16 +54,8 @@ X_FONTS(DefineFont)
 #define DefineScript(name, filepath) inline Script name;
 X_SCRIPTS(DefineScript)
 
-#define DefineSlideshow(name, filepath) inline char* name;
+#define DefineSlideshow(name, filepath) inline Slideshow name;
 X_SLIDESHOWS(DefineSlideshow)
-
-inline Font LoadPixelFont(const char* filepath)
-{
-	Image image = LoadImage(filepath);
-	Font font = LoadFontFromImage(image, MAGENTA, ' ');
-	SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
-	return font;
-}
 
 inline void LoadAllArt()
 {
@@ -83,7 +75,7 @@ inline void LoadAllArt()
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 
-	#define LoadSlideshow(name, filepath) name = LoadFileText(filepath);
+	#define LoadSlideshow(name, filepath) name = LoadSlideshow("art/" filepath);
 	X_SLIDESHOWS(LoadSlideshow);
 	#undef LoadSlideshow
 }
