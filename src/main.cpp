@@ -45,10 +45,10 @@ inline bool IsDialogAdvanceButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = nullptr;
+Script* CurrentScript = &IntroScript;
 int ScriptParagraphIndex;
 float ScriptParagraphTime;
-Texture ScriptFadeInOutTexture;
+Texture ScriptFadeInOutTexture; //@TODO This FadeInOut stuff will be removed
 float ScriptFadeInOutTime;
 float ScriptFadeInOutIncrement;
 
@@ -60,7 +60,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	assert(numSplit >= 1);
 
 	const char* command = split[0];
-	if (TextIsEqual(command, "FadeInOut"))
+	if (TextIsEqual(command, "FadeInOut")) //@TODO This FadeInOut stuff will be removed
 	{
 		assert(numParameters == 1);
 		const char* filepath = split[1];
@@ -230,9 +230,7 @@ void GameLoop()
 					}
 				}
 			}
-
-			// Update and render script. Just a test for now.
-			if (CurrentScript)
+			else if (CurrentScript) // Update and render script.
 			{
 				// Draw background.
 				float fadeAlpha = 1;

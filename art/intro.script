@@ -1,34 +1,26 @@
 [Protagonist]
-{FadeInOut depression1.png}
 Growing up, I can't say I had it all that easy.
 
-{FadeInOut depression2.png}
 I was a bit of a special case, I guess:
 Always picked on and picked last. Always hit, but never once hit up to hang out.
 
-{FadeInOut depression3.png}
-When school was all over and done with, I thought I could reinvent myself.
+[happy]When school was all over and done with, I thought I could reinvent myself.
 Start from zero and all that.
 
-{FadeInOut depression4.png}
-Wish someone would've told me then that the rest of life pulls its punches even less.
+[sad]Wish someone would've told me then that the rest of life pulls its punches even less.
 
-{FadeInOut depression5.png}
-After school, I met a girl. Fell in love. It didn't last.
+[happy]After school, I met a girl. Fell in love. It didn't last.
 
-{FadeInOut depression6.png}
-Got hired. Then fired. Then rehired just to be fired again.
+[]Got hired. Then fired. Then rehired just to be fired again.
 
-{FadeInOut depression7.png}
 Even said and done and tried a lot of things I shouldn't have.
 
-{FadeInOut depression8.png}
-But at least I had you.
+[happy]But at least I had you.
 We were...fun.
 
-.........
+[].........
 ......
 ...
 
 {FadeInOut depression9.png}
-You died last week. Or maybe the week before that, I don't know. Your funeral is today. It might have been yesterday.
+[sad]You died last week. Or maybe the week before that, I don't know. Your funeral is today. It might have been yesterday.
