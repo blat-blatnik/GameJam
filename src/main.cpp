@@ -14,14 +14,13 @@ static uint32_t selectedLayer = 0;
 
 #endif
 
-RenderTexture FixedRenderTexture{};
-// Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
+RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
 
 // Dialog script stuff
 
-Script* CurrentScript = &IntroScript;
+Script* CurrentScript = nullptr;
 int ScriptParagraphIndex;
 float ScriptParagraphTime;
 Texture ScriptFadeInOutTexture;
@@ -45,6 +44,11 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
+
+// Slideshow
+
+char* CurrentSlideshow = IntroSlideshow;
+int CurrentSlideshowSlideIndex;
 
 // Game
 
@@ -95,9 +99,9 @@ void GameLoop()
 	float maxScaleX = Max(windowWidth / FIXED_WIDTH, 1);
 	float maxScaleY = Max(windowHeight / FIXED_HEIGHT, 1);
 	float scale = Min(maxScaleX, maxScaleY);
-#if true // Force integer scaling.
+	#if true // Force integer scaling.
 	scale = floorf(scale);
-#endif
+	#endif
 	float scaledWidth = FIXED_WIDTH * scale;
 	float scaledHeight = FIXED_HEIGHT * scale;
 	Vector2 scaledSize = {
@@ -114,39 +118,39 @@ void GameLoop()
 	// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
 	MousePos = (GetMousePosition() - innerWindowOffset) / scaledSize * FIXED_SIZE;
 	MousePos = Vector2Clamp(MousePos, { 0, 0 }, FIXED_SIZE);
-		
 
-			BeginDrawing();
+
+	BeginDrawing();
+	{
+		ClearBackground(BLACK);
+		// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
+		BeginTextureMode(FixedRenderTexture);
+		{
+			ClearBackground(BLACK);
+			//DrawText("Hello :)", 100, 100, 64, RED);
+
 			{
-				ClearBackground(BLACK);
-				// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
-				BeginTextureMode(FixedRenderTexture);
+				// draw level and player
+				for (uint32_t layer = 0; layer < gameState.grid.layers; layer++)
 				{
-					ClearBackground(BLACK);
-					//DrawText("Hello :)", 100, 100, 64, RED);
-
+					for (uint32_t y = 0; y < gameState.grid.height; y++)
 					{
-						// draw level and player
-						for (uint32_t layer = 0; layer < gameState.grid.layers; layer++)
+						for (uint32_t x = 0; x < gameState.grid.width; x++)
 						{
-							for (uint32_t y = 0; y < gameState.grid.height; y++)
-							{
-								for (uint32_t x = 0; x < gameState.grid.width; x++)
-								{
-									uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
-									DrawTextureRec(Bathroom, Rectangle{
-													   (float)(textureIndex * 16 % Bathroom.width),
-													   (float)(textureIndex * 16 / Bathroom.width), 16, 16
-												   }, Vector2{x * 16.f, y * 16.f},WHITE);
-								}
-							}
+							uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
+							DrawTextureRec(Bathroom, Rectangle{
+								(float)(textureIndex * 16 % Bathroom.width),
+								(float)(textureIndex * 16 / Bathroom.width), 16, 16
+								}, Vector2{ x * 16.f, y * 16.f }, WHITE);
 						}
-
-						DrawRectangleV(gameState.player.position, Vector2{16, 32},DARKGREEN);
 					}
+				}
 
-				
-		
+				DrawRectangleV(gameState.player.position, Vector2{ 16, 32 }, DARKGREEN);
+			}
+
+
+
 			// Update and render script. Just a test for now.
 			if (CurrentScript)
 			{
@@ -164,85 +168,85 @@ void GameLoop()
 					ScriptFadeInOutTime = Clamp(ScriptFadeInOutTime, 0, 1);
 				}
 
-						Paragraph paragraph = CurrentScript->paragraphs[ScriptParagraphIndex];
-						const char* speaker = paragraph.speaker;
+				Paragraph paragraph = CurrentScript->paragraphs[ScriptParagraphIndex];
+				const char* speaker = paragraph.speaker;
 
-						ScriptParagraphTime += GetFrameTime();
-						float time = 30 * ScriptParagraphTime;
-						const char* expression = GetScriptExpression(*CurrentScript, ScriptParagraphIndex, time);
+				ScriptParagraphTime += GetFrameTime();
+				float time = 30 * ScriptParagraphTime;
+				const char* expression = GetScriptExpression(*CurrentScript, ScriptParagraphIndex, time);
 
-						const Color SPEAKER_COLOR = { 122, 156, 150, 255 };
-						const Color TEXT_COLOR = { 209, 191, 176, 255 };
-						const Rectangle TEXT_AREA = { 159, 220, 222, 46 };
+				const Color SPEAKER_COLOR = { 122, 156, 150, 255 };
+				const Color TEXT_COLOR = { 209, 191, 176, 255 };
+				const Rectangle TEXT_AREA = { 159, 220, 222, 46 };
 
-						DrawTexture(DialogBoxTexture, 95, 198, WHITE);
+				DrawTexture(DialogBoxTexture, 95, 198, WHITE);
 
-						const char* characterPortraitName = TextFormat("%s-%s.png", speaker, expression);
-						Texture characterPortrait = GetTexture(characterPortraitName);
-						DrawTexture(characterPortrait, 105, 209, WHITE);
+				const char* characterPortraitName = TextFormat("%s-%s.png", speaker, expression);
+				Texture characterPortrait = GetTexture(characterPortraitName);
+				DrawTexture(characterPortrait, 105, 209, WHITE);
 
-						DrawTextEx(Arial8Font, speaker, { 159 + 1, 205 + 1 }, 13, 0, ColorLerp(SPEAKER_COLOR, BLACK, 0.8f));
-						DrawTextEx(Arial8Font, speaker, { 159, 205 }, 13, 0, SPEAKER_COLOR);
-						bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
+				DrawTextEx(Arial8Font, speaker, { 159 + 1, 205 + 1 }, 13, 0, ColorLerp(SPEAKER_COLOR, BLACK, 0.8f));
+				DrawTextEx(Arial8Font, speaker, { 159, 205 }, 13, 0, SPEAKER_COLOR);
+				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 
-						// Advance on any of these inputs.
-						bool advance =
-							IsKeyPressed(KEY_ENTER) or
-							IsKeyPressed(KEY_SPACE) or
-							IsKeyPressed(KEY_E) or
-							IsKeyPressed(KEY_F) or
-							IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
-							IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-						if (advance or (ScriptFadeInOutIncrement < 0 and ScriptFadeInOutTime <= 0))
+				// Advance on any of these inputs.
+				bool advance =
+					IsKeyPressed(KEY_ENTER) or
+					IsKeyPressed(KEY_SPACE) or
+					IsKeyPressed(KEY_E) or
+					IsKeyPressed(KEY_F) or
+					IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
+					IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+				if (advance or (ScriptFadeInOutIncrement < 0 and ScriptFadeInOutTime <= 0))
+				{
+					if (doneWithScriptParagraph and ScriptFadeInOutTime <= 0)
+					{
+						PlaySound(PlaceholderSound);
+						ScriptParagraphIndex++;
+						ScriptParagraphTime = 0;
+						CurrentScript->commandIndex = 0; // Such a mess :(
+						if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
 						{
-							if (doneWithScriptParagraph and ScriptFadeInOutTime <= 0)
-							{
-								PlaySound(PlaceholderSound);
-								ScriptParagraphIndex++;
-								ScriptParagraphTime = 0;
-								CurrentScript->commandIndex = 0; // Such a mess :(
-								if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
-								{
-									CurrentScript = nullptr; // Done with the script! Go back to gameplay, or end the cutscene.
-									ScriptFadeInOutTexture = {};
-									ScriptFadeInOutIncrement = 0;
-								}
-							}
-							else if (not doneWithScriptParagraph)
-								ScriptParagraphTime = 9999; // Enough to go over everything.
-							else if (ScriptFadeInOutTime > 0 and ScriptFadeInOutIncrement > 0)
-								ScriptFadeInOutIncrement = -ScriptFadeInOutIncrement; // Start fading out.
-							else
-								assert(ScriptFadeInOutIncrement < 0);
+							CurrentScript = nullptr; // Done with the script! Go back to gameplay, or end the cutscene.
+							ScriptFadeInOutTexture = {};
+							ScriptFadeInOutIncrement = 0;
 						}
 					}
-
-					DrawTextureV(PlaceholderTexture, MousePos, WHITE);
+					else if (not doneWithScriptParagraph)
+						ScriptParagraphTime = 9999; // Enough to go over everything.
+					else if (ScriptFadeInOutTime > 0 and ScriptFadeInOutIncrement > 0)
+						ScriptFadeInOutIncrement = -ScriptFadeInOutIncrement; // Start fading out.
+					else
+						assert(ScriptFadeInOutIncrement < 0);
 				}
-				EndTextureMode();
-		
-				// Draw game render texture in the center of the screen.
-				DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { innerWindowOffset.x, innerWindowOffset.y, scaledWidth, scaledHeight }, {}, 0, WHITE);
+			}
 
-#if DEV_MODE
-				/*if (GuiButton(Rectangle{16,16,64,24},"Tile type1"))
-				{
-					selectedTile = GridTile_Floor;
-				}*/
-				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-				{
-					setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
-								(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, (GridTile)selectedTextureIndex);
-				}
+			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
+		}
+		EndTextureMode();
 
-				if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-				{
-					setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
-								(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, GridTile_None);
-				}
+		// Draw game render texture in the center of the screen.
+		DrawTexturePro(FixedRenderTexture.texture, { 0, 0, FIXED_WIDTH, -FIXED_HEIGHT }, { innerWindowOffset.x, innerWindowOffset.y, scaledWidth, scaledHeight }, {}, 0, WHITE);
+
+		#if DEV_MODE
+						/*if (GuiButton(Rectangle{16,16,64,24},"Tile type1"))
+						{
+							selectedTile = GridTile_Floor;
+						}*/
+		if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+		{
+			setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
+				(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, (GridTile)selectedTextureIndex);
+		}
+
+		if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+		{
+			setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
+				(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, GridTile_None);
+		}
 
 
-				static bool showMessageBox = false;
+		static bool showMessageBox = false;
 		if (GuiButton(Rectangle{ 24, 24, 120, 30 }, "#191#Editor Tool")) showMessageBox = true;
 
 		if (showMessageBox)
@@ -253,31 +257,31 @@ void GameLoop()
 			switch (btnActive)
 			{
 				case -1:
-				break;
+					break;
 				case 1:
 					selectedTextureIndex--;
-				break;
+					break;
 				case 2:
 					selectedTextureIndex++;
-				break;
-			case 3:
-				selectedLayer =0;
-				break;
-			case 4:
-				selectedLayer =1;
-				break;
-			default:
-				showMessageBox = false;
+					break;
+				case 3:
+					selectedLayer = 0;
+					break;
+				case 4:
+					selectedLayer = 1;
+					break;
+				default:
+					showMessageBox = false;
 			}
-			selectedTextureIndex%=(Bathroom.width *Bathroom.height/16);
+			selectedTextureIndex %= (Bathroom.width * Bathroom.height / 16);
 
 		}
 
 
 				// Draw GUI on top of everything on the real window coordinates.
-				DrawFPS(10, 10);
-#endif
-		}
+		DrawFPS(10, 10);
+		#endif
+	}
 	EndDrawing();
 }
 
@@ -285,19 +289,19 @@ int main()
 {
 	// Typically working directory on windows starts as the EXE directory, but during dev that's in bin/Debug/Game.exe, and it could change.
 	// Better to always start from project root directory.
-#if DEV_MODE
+	#if DEV_MODE
 	{
 		ChangeDirectory(GetApplicationDirectory());
 		for (int attempt = 0; attempt < 3 and not DirectoryExists("art"); attempt++)
 			ChangeDirectory("..");
 	}
-#endif
+	#endif
 
-	// Initialize raylib.
+		// Initialize raylib.
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
-#ifndef __EMSCRIPTEN__
+	#ifndef __EMSCRIPTEN__
 	SetWindowMinSize(FIXED_WIDTH, FIXED_HEIGHT); // This doesn't work on web, IDFK why, but whatever :')
-#endif
+	#endif
 	InitWindow(FIXED_WIDTH, FIXED_HEIGHT, "Jammin");
 	SetExitKey(0); // prevent exiting by pressing esc
 	InitAudioDevice();
@@ -325,11 +329,11 @@ int main()
 	LoadAllArt();
 	initializeGameState(&gameState);
 	// The browser wants to control the animation loop on the web.
-#ifdef __EMSCRIPTEN__
+	#ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(GameLoop, 0, false);
-#else
+	#else
 	while (not WindowShouldClose()) GameLoop();
-#endif
+	#endif
 
 	// Save window placement for next run.
 	WindowPlacement placement = {};

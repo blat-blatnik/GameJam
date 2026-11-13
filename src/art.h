@@ -29,8 +29,14 @@
 #ifndef X_SCRIPTS
 #define X_SCRIPTS(X)\
 	/* X(variable_name, filepath) */\
-	X(ExampleScript, "example-script.txt")\
 	X(IntroScript, "intro.script")\
+
+#endif
+
+#ifndef X_SLIDESHOWS
+#define X_SLIDESHOWS(X)\
+	/* X(variable_name, filepath) */\
+	X(IntroSlideshow, "intro.slideshow")\
 
 #endif
 
@@ -47,6 +53,9 @@ X_FONTS(DefineFont)
 
 #define DefineScript(name, filepath) inline Script name;
 X_SCRIPTS(DefineScript)
+
+#define DefineSlideshow(name, filepath) inline char* name;
+X_SLIDESHOWS(DefineSlideshow)
 
 inline Font LoadPixelFont(const char* filepath)
 {
@@ -73,4 +82,8 @@ inline void LoadAllArt()
 	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
+
+	#define LoadSlideshow(name, filepath) name = LoadFileText(filepath);
+	X_SLIDESHOWS(LoadSlideshow);
+	#undef LoadSlideshow
 }
