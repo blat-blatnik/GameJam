@@ -174,8 +174,8 @@ void GameLoop()
 						{
 							uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
 							DrawTextureRec(Bathroom, Rectangle{
-												(float)(textureIndex * 16 % Bathroom.width),
-												(float)(textureIndex * 16 / Bathroom.width), 16, 16
+												(float)(textureIndex % (Bathroom.width/16))*16.f,
+												(float)(textureIndex  /(Bathroom.width/16))*16.f, 16, 16
 											}, Vector2{x * 16.f, y * 16.f}, WHITE);
 						}
 					}
@@ -318,33 +318,31 @@ void GameLoop()
 							(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, GridTile_None);
 			}
 
-			int btnActive = -1;
-			GuiMessageBox(Rectangle{85, 70, 250, 100},
-						"#191#Message Box", "Hi! This is a message!", "Prev tile;Next tile;Layer 0;Layer 1",
-						&btnActive);
-			switch (btnActive)
-			{
-			case -1:
-				break;
-			case 1:
-				selectedTextureIndex--;
-				break;
-			case 2:
-				selectedTextureIndex++;
-				break;
-			case 3:
-				selectedLayer = 0;
-				break;
-			case 4:
-				selectedLayer = 1;
-				break;
-			default: ;
-			}
-			selectedTextureIndex %= (Bathroom.width * Bathroom.height / 16);
 		}
 		else if (mode == Mode_TileSelection)
 		{
 			DrawTextureEx(Bathroom, {}, 0, 4,WHITE);
+			uint32_t x=  selectedTextureIndex % (Bathroom.width/16);
+			uint32_t y=  selectedTextureIndex / (Bathroom.width/16);
+			
+			DrawRectangleLines(x*16*4,y*16*4,16*4,16*4,RED);
+			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+			{
+				Vector2 mousePos= GetMousePosition();
+				if (mousePos.x<Bathroom.width*4 && mousePos.y<Bathroom.height*4)
+				{
+					selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+				}
+			}
+		}
+		if (IsKeyPressed(KEY_P))
+		{
+			saveLevel(levelName,&gameState.grid);
+			
+		}
+		if (IsKeyPressed(KEY_L))
+		{
+			loadLevel(levelName,&gameState);
 		}
 
 		// Draw GUI on top of everything on the real window coordinates.
