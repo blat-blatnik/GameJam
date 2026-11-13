@@ -225,6 +225,16 @@ inline float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normaliz
 	return Clamp(normalized, 0, 1);
 }
 
+// String
+
+inline unsigned Hash(const char* string) // FNV-1a
+{
+	unsigned hash = 0x811C9DC5;
+	while (*string)
+		hash = (hash ^ (unsigned char)*string++) * 0x01000193;
+	return hash;
+}
+
 // List
 
 template<class T> struct List
@@ -280,6 +290,11 @@ inline float GetLineHeight(Font font, float fontSize)
 	return font.baseSize * (fontSize / font.baseSize);
 }
 
+// Assets
+
+Texture GetTexture(const char* filepath);
+Sound GetSound(const char* filepath);
+
 // Script
 
 struct Paragraph
@@ -305,7 +320,7 @@ struct Script
 
 Script LoadScript(const char* path, Font regular, Font bold, Font italic, Font boldItalic); // Loads a script from the given text file.
 void UnloadScript(Script* script); // Unloads all script memory and nullifies the script.
-void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time); // Draws the script paragraph at the given index. NOTE: This also executes console commands within the paragraph!
+bool DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time); // Draws the script paragraph at the given index. NOTE: This also executes console commands within the paragraph! Returns true if we're done with this paragraph.
 const char* GetScriptExpression(Script script, int paragratphIndex, float time); // Gets the current speaker expression at the given time in the paragraph.
 
 // Windowing

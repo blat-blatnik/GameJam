@@ -6,6 +6,7 @@
 	/* X(variable_name, filepath) */\
 	X(PlaceholderTexture, "placeholder.png")\
 	X(GridTest, "gridtest.png")\
+	X(DialogBoxTexture, "dialog-box.png")\
 
 #endif
 
@@ -27,6 +28,7 @@
 #define X_SCRIPTS(X)\
 	/* X(variable_name, filepath) */\
 	X(ExampleScript, "example-script.txt")\
+	X(IntroScript, "intro.script")\
 
 #endif
 
@@ -44,13 +46,16 @@ X_FONTS(DefineFont)
 #define DefineScript(name, filepath) inline Script name;
 X_SCRIPTS(DefineScript)
 
+static Font Arial8Font;
+static Font AsepriteFont;
+
 inline void LoadAllArt()
 {
-	#define LoadTexture(name, filepath) name = LoadTexture("art/" filepath);
+	#define LoadTexture(name, filepath) name = GetTexture(filepath);
 	X_TEXTURES(LoadTexture);
 	#undef LoadTexture
 
-	#define LoadSound(name, filepath) name = LoadSound("art/" filepath);
+	#define LoadSound(name, filepath) name = GetSound(filepath);
 	X_SOUNDS(LoadSound);
 	#undef LoadSound
 
@@ -58,8 +63,15 @@ inline void LoadAllArt()
 	X_FONTS(LoadFont);
 	#undef LoadFont
 
-	Font defaultFont = GetFontDefault();
-	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, DialogueBoxFont, DialogueBoxFont, DialogueBoxFont, DialogueBoxFont);
+	Image arial8FontImage = LoadImage("art/arial8.png");
+	Arial8Font = LoadFontFromImage(arial8FontImage, MAGENTA, ' ');
+	SetTextureFilter(Arial8Font.texture, TEXTURE_FILTER_POINT);
+
+	Image asepriteFontImage = LoadImage("art/aseprite-font.png");
+	AsepriteFont = LoadFontFromImage(asepriteFontImage, MAGENTA, ' ');
+	SetTextureFilter(AsepriteFont.texture, TEXTURE_FILTER_POINT);
+
+	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 }

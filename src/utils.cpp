@@ -1,5 +1,51 @@
 #include "utils.h"
 
+// Assets
+
+template<class T, int Capacity> struct AssetTable
+{
+	const char* Keys[Capacity];
+	T Values[Capacity];
+
+	T& operator[](const char* key)
+	{
+		unsigned hash = Hash(key);
+		unsigned mask = Capacity - 1;
+		for (unsigned i = (hash & mask);; i = (i + 1) & mask)
+		{
+			if (Keys[i] == nullptr or TextIsEqual(key, Keys[i]))
+			{
+				Keys[i] = key;
+				return Values[i];
+			}
+		}
+	}
+};
+
+AssetTable<Texture, 4096> TextureTable;
+AssetTable<Sound, 1024> SoundTable;
+
+Texture GetTexture(const char* filepath)
+{
+	Texture* texture = &TextureTable[filepath];
+	if (texture->id == 0)
+	{
+		const char* artPath = TextFormat("art/%s", filepath);
+		*texture = LoadTexture(artPath);
+	}
+	return *texture;
+}
+Sound GetSound(const char* filepath)
+{
+	Sound* sound = &SoundTable[filepath];
+	if (sound->stream.buffer == nullptr)
+	{
+		const char* artPath = TextFormat("art/%s", filepath);
+		*sound = LoadSound(artPath);
+	}
+	return *sound;
+}
+
 // Script
 // 
 // I took this code from an old failed game jam project I worked on. Here is the original comment I added to that code haha:
@@ -157,6 +203,8 @@ static bool IsWhitespace(int codepoint)
 {
 	return codepoint < 128 && isspace(codepoint);
 }
+
+void ExecuteScriptCommand(const char* command); // Defined in main.cpp (yes I know it's a mess D:)
 
 Script LoadScript(const char *path, Font regular, Font bold, Font italic, Font boldItalic)
 {
@@ -322,7 +370,7 @@ void UnloadScript(Script* script)
 	script->commandIndex = 0;
 	TraceLog(LOG_INFO, "Script unloaded.");
 }
-void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time)
+bool DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time)
 {
 	paragraphIndex = ClampInt(paragraphIndex, 0, script->paragraphs.count - 1);
 	Paragraph paragraph = script->paragraphs[paragraphIndex];
@@ -343,23 +391,23 @@ void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 	float maxX = textBox.x + textBox.width;
 	int commandIndex = 0;
 
-	for (int i = 0; i < numCodepoints and (group or t < time); ++i)
+	int codepointIndex;
+	for (codepointIndex = 0; codepointIndex < numCodepoints and (group or t < time); ++codepointIndex)
 	{
-		int codepoint = codepoints[i];
+		int codepoint = codepoints[codepointIndex];
 		if (codepoint == CONTROL('['))
 		{
-			++i; // Skip the string index.
+			++codepointIndex; // Skip the string index.
 		}
 		else if (codepoint == CONTROL('{'))
 		{
-			int stringIndex = codepoints[++i];
+			int stringIndex = codepoints[++codepointIndex];
 			char *command = &script->stringPool[stringIndex];
 			if (++commandIndex > script->commandIndex)
 			{
 				script->commandIndex++;
 				TraceLog(LOG_INFO, "Script executing command %d: '%s'.", script->commandIndex, command);
-				//@TODO
-				// ExecuteCommand(command);
+				ExecuteScriptCommand(command);
 			}
 		}
 		else if (codepoint == CONTROL('*'))
@@ -404,7 +452,7 @@ void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 			// Check if the word will fit on the line, and if it doesn't, break the line before drawing the word.
 			float width = 0;
 			Style backupStyle = style;
-			for (int j = i; j < numCodepoints and not IsWhitespace(codepoints[j]) and codepoints[j] != CONTROL('['); ++j)
+			for (int j = codepointIndex; j < numCodepoints and not IsWhitespace(codepoints[j]) and codepoints[j] != CONTROL('['); ++j)
 			{
 				codepoint = codepoints[j];
 				if (codepoint == CONTROL('*'))
@@ -427,7 +475,7 @@ void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 			}
 
 			style = backupStyle;
-			codepoint = codepoints[i];
+			codepoint = codepoints[codepointIndex];
 
 			// @SPEED Here we could draw the entire word instead of just the one character.
 			{
@@ -440,6 +488,9 @@ void DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 			}
 		}
 	}
+
+	// Return if we're done.
+	return codepointIndex >= numCodepoints;
 }
 const char* GetScriptExpression(Script script, int paragraphIndex, float time)
 {
