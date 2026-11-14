@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 #include <cstdint>
-const char* levelName ="bathroom.bin";
+char levelName[64] = "bathroom.bin";
 
 enum GridTile: uint32_t
 {
@@ -100,7 +100,7 @@ bool loadLevel(const char* fileName, GameState* gameState)
     if (FileExists(fileName))
     {
         int fileSize = 0;
-        uint8_t* data = LoadFileData(levelName,  &fileSize);
+        uint8_t* data = LoadFileData(fileName,  &fileSize);
         if (fileSize >=sizeof(Grid))
         {
             gameState->grid = *(Grid*)data;

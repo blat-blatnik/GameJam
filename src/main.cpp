@@ -53,6 +53,20 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			SetSoundPitch(sound, pitch);
 			PlaySound(sound);
 		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'sound_filename' for 'sound' command.");
+	}
+	else if (TextIsEqual(command, "level"))
+	{
+		if (numParameters >= 1)
+		{
+			const char* filename = split[1];
+			if (loadLevel(filename, &gameState))
+				TraceLog(LOG_INFO, "Loaded level '%s'", filename);
+			else
+				TraceLog(LOG_ERROR, "Level '%s' not found!", filename);
+			TextCopy(levelName, filename);
+		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'level' command.");
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
