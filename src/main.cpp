@@ -18,6 +18,7 @@ enum Mode :uint32_t
 static Mode mode = Mode_Normal;
 #ifdef DEV_MODE
 static uint32_t selectedTextureIndex = 0;
+static uint32_t nextSelectedTextureIndex = 0;
 static uint32_t selectedLayer = 0;
 #endif
 
@@ -27,8 +28,8 @@ GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loo
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = &IntroSlideshow;
-int CurrentSlideIndex;
+Slideshow* CurrentSlideshow =nullptr; //&IntroSlideshow;
+int CurrentSlideIndex = 1024;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
 
@@ -46,7 +47,7 @@ inline bool IsDialogAdvanceButtonPressed()
 // Dialog script stuff
 
 Script* CurrentScript = &IntroScript;
-int ScriptParagraphIndex;
+int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 Texture ScriptFadeInOutTexture; //@TODO This FadeInOut stuff will be removed
 float ScriptFadeInOutTime;
@@ -305,8 +306,18 @@ void GameLoop()
 		{
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
-				setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
-							(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, (GridTile)selectedTextureIndex);
+				uint32_t selectedTextureX=  selectedTextureIndex % (Bathroom.width/16);
+				uint32_t selectedTextureY=  selectedTextureIndex / (Bathroom.width/16);
+				
+				uint32_t lastX=  nextSelectedTextureIndex % (Bathroom.width/16) -selectedTextureX +1;
+				uint32_t lastY=  nextSelectedTextureIndex / (Bathroom.width/16) -selectedTextureY +1;
+				for (uint32_t y = 0; y < lastY; y++)
+				{
+					for (uint32_t x = 0; x < lastX; x++){
+						setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f)+x,
+								(uint32_t)nearbyintf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(Bathroom.width/16)));
+					}
+				}
 			}
 
 			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
@@ -321,15 +332,54 @@ void GameLoop()
 			DrawTextureEx(Bathroom, {}, 0, 4,WHITE);
 			uint32_t x=  selectedTextureIndex % (Bathroom.width/16);
 			uint32_t y=  selectedTextureIndex / (Bathroom.width/16);
+			uint32_t width = 16*4;
+			uint32_t height = 16*4;
+			if (selectedTextureIndex!=nextSelectedTextureIndex){
+
+				uint32_t nextX=  nextSelectedTextureIndex % (Bathroom.width/16);
+				uint32_t nextY=  nextSelectedTextureIndex / (Bathroom.width/16);
+				width *= nextX-x +1;
+				height *= nextY-y +1;
+				
+			}
 			
-			DrawRectangleLines(x*16*4,y*16*4,16*4,16*4,RED);
+			DrawRectangleLines(x*16*4,y*16*4,width,height,RED);
+			{
+				
+				Vector2 mousePos= GetMousePosition();
+				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+				uint32_t mouseHoverCellX=  mouseHoverCell % (Bathroom.width/16);
+				uint32_t mouseHoverCellY=  mouseHoverCell / (Bathroom.width/16);
+				DrawRectangleLines(mouseHoverCellX*16*4,mouseHoverCellY*16*4,16*4,16*4,GREEN);
+			}
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
 				Vector2 mousePos= GetMousePosition();
-				if (mousePos.x<Bathroom.width*4 && mousePos.y<Bathroom.height*4)
+				if (mousePos.x<Bathroom.width*4.f && mousePos.y<Bathroom.height*4.f)
 				{
-					selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+					if (IsKeyDown(KEY_LEFT_SHIFT))
+					{
+						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+						if (selectedTextureIndex>nextSelectedTextureIndex)
+						{
+							uint32_t temp =nextSelectedTextureIndex;
+							nextSelectedTextureIndex = selectedTextureIndex;
+							selectedTextureIndex = temp;
+						}
+					}else
+					{
+						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+						nextSelectedTextureIndex = selectedTextureIndex;
+					}
 				}
+			}
+			if (GuiButton(Rectangle{Bathroom.width*4.f,0,64,32},"Layer 0"))
+			{
+				selectedLayer = 0;
+			}
+			if (GuiButton(Rectangle{Bathroom.width*4.f+68,0,64,32},"Layer 1"))
+			{
+				selectedLayer = 1;
 			}
 		}
 		if (IsKeyPressed(KEY_P))
