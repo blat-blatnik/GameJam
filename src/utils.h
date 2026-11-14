@@ -225,16 +225,6 @@ inline float ClipTime(ClipContext* ctx, float duration) // Return [0,1] normaliz
 	return Clamp(normalized, 0, 1);
 }
 
-// String
-
-inline unsigned Hash(const char* string) // FNV-1a
-{
-	unsigned hash = 0x811C9DC5;
-	while (*string)
-		hash = (hash ^ (unsigned char)*string++) * 0x01000193;
-	return hash;
-}
-
 // List
 
 template<class T> struct List
@@ -282,6 +272,38 @@ template<class T> struct List
 		return items[index];
 	}
 };
+
+// String
+
+inline unsigned Hash(const char* string) // FNV-1a
+{
+	unsigned hash = 0x811C9DC5;
+	while (*string)
+		hash = (hash ^ (unsigned char)*string++) * 0x01000193;
+	return hash;
+}
+inline List<char*> SplitLines(const char* string)
+{
+	List<char*> lines = {};
+	const char* start = string;
+	for (const char* cursor = string; *cursor != '\0'; cursor++)
+	{
+		if (*cursor == '\r' or *cursor == '\n')
+		{
+			const char* end = cursor;
+			if (*cursor == '\r') cursor += cursor[1] == '\n';
+
+			int length = (int)(ptrdiff_t)(end - start);
+			char* line = (char*)MemAlloc(length + 1);
+			memcpy(line, start, length);
+			line[length] = '\0';
+			lines.Add(line);
+
+			start = cursor + 1;
+		}
+	}
+	return lines;
+}
 
 // Font
 

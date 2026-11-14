@@ -53,12 +53,11 @@ Slideshow LoadSlideshow(const char* filepath)
 	Slideshow slideshow = {};
 
 	char* fileText = LoadFileText(filepath);
-
-	int numLines;
-	char** lines = LoadTextLines(fileText, &numLines);
+	List<char*> lines = SplitLines(fileText);
+	UnloadFileText(fileText);
 
 	Slide slide = {};
-	for (int lineIndex = 0; lineIndex < numLines; lineIndex++)
+	for (int lineIndex = 0; lineIndex < lines.count; lineIndex++)
 	{
 		char* line = lines[lineIndex];
 		if (*line == '\0' and (slide.lines.count > 0 or slide.frames.count > 0))
@@ -88,8 +87,8 @@ Slideshow LoadSlideshow(const char* filepath)
 		slide = {};
 	}
 
-	UnloadTextLines(lines, numLines);
-	UnloadFileText(fileText);
+	for (int i = 0; i < lines.count; i++) MemFree(lines[i]);
+	lines.Free();
 	return slideshow;
 }
 

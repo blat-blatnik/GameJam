@@ -28,8 +28,8 @@ GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loo
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
-int CurrentSlideIndex;
+Slideshow* CurrentSlideshow = &IntroSlideshow;
+int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
 
