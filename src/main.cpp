@@ -43,6 +43,8 @@ GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loo
 
 // Script Commands
 
+char ConsoleText[512];
+
 void ExecuteScriptCommand(const char* commandAndParams)
 {
 	int numSplit;
@@ -158,6 +160,7 @@ void GameLoop()
 		{
 			ConsoleBackupMode = mode;
 			mode = Mode_Console;
+			memset(ConsoleText, 0, sizeof ConsoleText);
 		}
 		else mode = ConsoleBackupMode;
 	}
@@ -421,7 +424,6 @@ void GameLoop()
 		}
 		else if (mode == Mode_Console)
 		{
-			static char ConsoleText[512];
 			int backupTextSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
 			GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 			if (GuiTextBox(Rectangle{ 0, 0, windowWidth, 32 }, ConsoleText, sizeof ConsoleText, true))
@@ -429,16 +431,20 @@ void GameLoop()
 				ExecuteScriptCommand(ConsoleText);
 				memset(ConsoleText, 0, sizeof ConsoleText);
 			}
+			if (ConsoleText[0] == '`') memmove(ConsoleText, ConsoleText + 1, sizeof ConsoleText - 1); //@HACK pressing ` to bring up the console also types ` into the text box, so just skip that.
 			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);
 		}
 
-		if (IsKeyPressed(KEY_P))
+		if (mode != Mode_Console)
 		{
-			saveLevel(getCurrentLevel().name,&gameState.grid);
-		}
-		if (IsKeyPressed(KEY_L))
-		{
-			loadLevel(getCurrentLevel().name,&gameState);
+			if (IsKeyPressed(KEY_P))
+			{
+				saveLevel(getCurrentLevel().name, &gameState.grid);
+			}
+			if (IsKeyPressed(KEY_L))
+			{
+				loadLevel(getCurrentLevel().name, &gameState);
+			}
 		}
 
 		// Draw GUI on top of everything on the real window coordinates.
