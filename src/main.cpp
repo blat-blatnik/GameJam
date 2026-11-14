@@ -26,7 +26,7 @@ static uint32_t selectedLayer = 0;
 static const Level levels[]
 {
 	{
-		.name ="bathroom.bin",
+		.name ="bathroom.level",
 		.collision="bathroom_collision.bin",
 		.texture = &Bathroom,
 	},
@@ -44,6 +44,7 @@ GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loo
 // Script Commands
 
 char ConsoleText[512];
+Mode ConsoleBackupMode = Mode_Normal;
 
 void ExecuteScriptCommand(const char* commandAndParams)
 {
@@ -76,6 +77,9 @@ void ExecuteScriptCommand(const char* commandAndParams)
 		if (numParameters >= 1)
 		{
 			const char* filename = split[1];
+			const char* extension = GetFileExtension(filename);
+			if (not extension) filename = TextFormat("%s.level", filename);
+
 			if (loadLevel(filename, &gameState))
 				TraceLog(LOG_INFO, "Loaded level '%s'", filename);
 			else
@@ -155,7 +159,6 @@ void GameLoop()
 
 	if (IsKeyPressed(KEY_GRAVE))
 	{
-		static Mode ConsoleBackupMode = Mode_Normal;
 		if (mode != Mode_Console)
 		{
 			ConsoleBackupMode = mode;
@@ -430,6 +433,7 @@ void GameLoop()
 			{
 				ExecuteScriptCommand(ConsoleText);
 				memset(ConsoleText, 0, sizeof ConsoleText);
+				mode = ConsoleBackupMode; // Close the console.
 			}
 			if (ConsoleText[0] == '`') memmove(ConsoleText, ConsoleText + 1, sizeof ConsoleText - 1); //@HACK pressing ` to bring up the console also types ` into the text box, so just skip that.
 			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);

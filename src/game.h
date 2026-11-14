@@ -121,7 +121,8 @@ static bool loadCollision(const char* fileName, Texture* texture, uint8_t** coll
 
 static bool saveLevel(const char* fileName, Grid* grid)
 {
-	FILE* file = fopen(fileName, "wb");
+	const char* filePath = TextFormat("art/%s", fileName);
+	FILE* file = fopen(filePath, "wb");
 	bool success = file != nullptr;
 	fwrite(grid, sizeof(Grid), 1, file);
 	fwrite(grid->tiles, getGridSize(grid), 1, file);
@@ -131,11 +132,13 @@ static bool saveLevel(const char* fileName, Grid* grid)
 
 static bool loadLevel(const char* fileName, GameState* gameState)
 {
+	const char* filePath = TextFormat("art/%s", fileName);
+
 	bool result = true;
-	if (FileExists(fileName))
+	if (FileExists(filePath))
 	{
 		int fileSize = 0;
-		uint8_t* data = LoadFileData(fileName, &fileSize);
+		uint8_t* data = LoadFileData(filePath, &fileSize);
 		if (fileSize >= sizeof(Grid))
 		{
 			gameState->grid = *(Grid*)data;
