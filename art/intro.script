@@ -1,10 +1,10 @@
 [Protagonist]
 Growing up, I can't say I had it all that easy.
 
-I was a bit of a special case, I guess:
+{sound placeholder.wav}I was a bit of a special case, I guess:
 Always picked on and picked last. Always hit, but never once hit up to hang out.
 
-[happy]When school was all over and done with, I thought I could reinvent myself.
+{sound placeholder.wav}[happy]When school was all over and done with, I thought I could reinvent myself.
 Start from zero and all that.
 
 [sad]Wish someone would've told me then that the rest of life pulls its punches even less.
@@ -22,5 +22,4 @@ We were...fun.
 ......
 ...
 
-{FadeInOut depression9.png}
 [sad]You died last week. Or maybe the week before that, I don't know. Your funeral is today. It might have been yesterday.

@@ -28,8 +28,8 @@ GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loo
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow =nullptr; //&IntroSlideshow;
-int CurrentSlideIndex = 1024;
+Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
+int CurrentSlideIndex;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
 
@@ -49,9 +49,6 @@ inline bool IsDialogAdvanceButtonPressed()
 Script* CurrentScript = &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
-Texture ScriptFadeInOutTexture; //@TODO This FadeInOut stuff will be removed
-float ScriptFadeInOutTime;
-float ScriptFadeInOutIncrement;
 
 void ExecuteScriptCommand(const char* commandAndParams)
 {
@@ -61,12 +58,22 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	assert(numSplit >= 1);
 
 	const char* command = split[0];
-	if (TextIsEqual(command, "FadeInOut")) //@TODO This FadeInOut stuff will be removed
+	if (TextIsEqual(command, "sound"))
 	{
-		assert(numParameters == 1);
-		const char* filepath = split[1];
-		ScriptFadeInOutTexture = GetTexture(filepath);
-		ScriptFadeInOutIncrement = +1.5f;
+		if (numParameters >= 1)
+		{
+			const char* filepath = split[1];
+			const char* volumeString = numParameters >= 2 ? split[2] : "1";
+			const char* pitchString = numParameters >= 3 ? split[3] : "1";
+			
+			float volume = strtof(volumeString, nullptr);
+			float pitch = strtof(pitchString, nullptr);
+
+			Sound sound = GetSound(filepath);
+			SetSoundVolume(sound, volume);
+			SetSoundPitch(sound, pitch);
+			PlaySound(sound);
+		}
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
@@ -233,20 +240,6 @@ void GameLoop()
 			}
 			else if (CurrentScript) // Update and render script.
 			{
-				// Draw background.
-				float fadeAlpha = 1;
-				if (ScriptFadeInOutTexture.id)
-				{
-					fadeAlpha = Clamp(ScriptFadeInOutTime, 0, 1);
-					fadeAlpha = floorf(fadeAlpha * 6) / 6; // Quantize
-
-					DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, BLACK);
-					Color fadeTint = ColorAlpha(WHITE, fadeAlpha);
-					DrawTexture(ScriptFadeInOutTexture, 0, 0, fadeTint);
-					ScriptFadeInOutTime += GetFrameTime() * ScriptFadeInOutIncrement;
-					ScriptFadeInOutTime = Clamp(ScriptFadeInOutTime, 0, 1);
-				}
-
 				Paragraph paragraph = CurrentScript->paragraphs[ScriptParagraphIndex];
 				const char* speaker = paragraph.speaker;
 
@@ -268,29 +261,18 @@ void GameLoop()
 				DrawTextEx(Arial8Font, speaker, {159, 205}, 13, 0, SPEAKER_COLOR);
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 
-				// Advance on any of these inputs.
 				bool advance = IsDialogAdvanceButtonPressed();
-				if (advance or (ScriptFadeInOutIncrement < 0 and ScriptFadeInOutTime <= 0))
+				if (advance)
 				{
-					if (doneWithScriptParagraph and ScriptFadeInOutTime <= 0)
+					if (doneWithScriptParagraph)
 					{
-						PlaySound(PlaceholderSound);
 						ScriptParagraphIndex++;
 						ScriptParagraphTime = 0;
 						CurrentScript->commandIndex = 0; // Such a mess :(
 						if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
-						{
 							CurrentScript = nullptr; // Done with the script! Go back to gameplay, or end the cutscene.
-							ScriptFadeInOutTexture = {};
-							ScriptFadeInOutIncrement = 0;
-						}
 					}
-					else if (not doneWithScriptParagraph)
-						ScriptParagraphTime = 9999; // Enough to go over everything.
-					else if (ScriptFadeInOutTime > 0 and ScriptFadeInOutIncrement > 0)
-						ScriptFadeInOutIncrement = -ScriptFadeInOutIncrement; // Start fading out.
-					else
-						assert(ScriptFadeInOutIncrement < 0);
+					else ScriptParagraphTime = 9999; // Enough to go over everything.
 				}
 			}
 
