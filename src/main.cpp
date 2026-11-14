@@ -354,16 +354,16 @@ void GameLoop()
 				for (uint32_t y = 0; y < lastY; y++)
 				{
 					for (uint32_t x = 0; x < lastX; x++){
-						setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f)+x,
-								(uint32_t)nearbyintf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(levelTexture.width/16)));
+						setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f)+x,
+								(uint32_t)floorf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(levelTexture.width/16)));
 					}
 				}
 			}
 
 			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
 			{
-				setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f),
-							(uint32_t)nearbyintf(MousePos.y / 16.f), selectedLayer, GridTile_None);
+				setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f),
+							(uint32_t)floorf(MousePos.y / 16.f), selectedLayer, GridTile_None);
 			}
 
 		}
