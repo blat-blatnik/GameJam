@@ -12,7 +12,8 @@ enum Mode :uint32_t
 {
 	Mode_Normal,
 	Mode_TileSelection,
-	Mode_Paint
+	Mode_Paint,
+	Mode_Console,
 };
 
 static Mode mode = Mode_Normal;
@@ -26,29 +27,7 @@ RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH 
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
 
-// Slideshow stuff
-
-Slideshow* CurrentSlideshow = &IntroSlideshow;
-int CurrentSlideIndex = 0;
-float CurrentSlideAlpha;
-float CurrentSlideAlphaIncrement = +1.5f;
-
-inline bool IsDialogAdvanceButtonPressed()
-{
-	return
-		IsKeyPressed(KEY_ENTER) or
-		IsKeyPressed(KEY_SPACE) or
-		IsKeyPressed(KEY_E) or
-		IsKeyPressed(KEY_F) or
-		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
-		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-}
-
-// Dialog script stuff
-
-Script* CurrentScript = &IntroScript;
-int ScriptParagraphIndex ;
-float ScriptParagraphTime;
+// Script Commands
 
 void ExecuteScriptCommand(const char* commandAndParams)
 {
@@ -65,7 +44,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			const char* filepath = split[1];
 			const char* volumeString = numParameters >= 2 ? split[2] : "1";
 			const char* pitchString = numParameters >= 3 ? split[3] : "1";
-			
+
 			float volume = strtof(volumeString, nullptr);
 			float pitch = strtof(pitchString, nullptr);
 
@@ -77,6 +56,30 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
+
+// Slideshow stuff
+
+Slideshow* CurrentSlideshow = &IntroSlideshow;
+int CurrentSlideIndex = 0;
+float CurrentSlideAlpha;
+float CurrentSlideAlphaIncrement = +1.5f;
+
+bool IsDialogAdvanceButtonPressed()
+{
+	return
+		IsKeyPressed(KEY_ENTER) or
+		IsKeyPressed(KEY_SPACE) or
+		IsKeyPressed(KEY_E) or
+		IsKeyPressed(KEY_F) or
+		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
+		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+}
+
+// Dialog script stuff
+
+Script* CurrentScript = &IntroScript;
+int ScriptParagraphIndex ;
+float ScriptParagraphTime;
 
 // Game
 
@@ -120,18 +123,32 @@ void GameLoop()
 	inputVelocity = Vector2Normalize(inputVelocity);
 	gameState.player.position += inputVelocity * 100.f * GetFrameTime();
 
+	if (IsKeyPressed(KEY_GRAVE))
+	{
+		static Mode ConsoleBackupMode = Mode_Normal;
+		if (mode != Mode_Console)
+		{
+			ConsoleBackupMode = mode;
+			mode = Mode_Console;
+		}
+		else mode = ConsoleBackupMode;
+	}
 
-	if (IsKeyPressed(KEY_ONE))
+	// Let you type anything into the console.
+	if (mode != Mode_Console)
 	{
-		mode = Mode_Normal;
-	}
-	if (IsKeyPressed(KEY_TWO))
-	{
-		mode = Mode_TileSelection;
-	}
-	if (IsKeyPressed(KEY_THREE))
-	{
-		mode = Mode_Paint;
+		if (IsKeyPressed(KEY_ONE))
+		{
+			mode = Mode_Normal;
+		}
+		if (IsKeyPressed(KEY_TWO))
+		{
+			mode = Mode_TileSelection;
+		}
+		if (IsKeyPressed(KEY_THREE))
+		{
+			mode = Mode_Paint;
+		}
 	}
 
 	// Scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
@@ -364,10 +381,22 @@ void GameLoop()
 				selectedLayer = 1;
 			}
 		}
+		else if (mode == Mode_Console)
+		{
+			static char ConsoleText[512];
+			int backupTextSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
+			GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
+			if (GuiTextBox(Rectangle{ 0, 0, windowWidth, 32 }, ConsoleText, sizeof ConsoleText, true))
+			{
+				ExecuteScriptCommand(ConsoleText);
+				memset(ConsoleText, 0, sizeof ConsoleText);
+			}
+			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);
+		}
+
 		if (IsKeyPressed(KEY_P))
 		{
 			saveLevel(levelName,&gameState.grid);
-			
 		}
 		if (IsKeyPressed(KEY_L))
 		{
@@ -375,7 +404,7 @@ void GameLoop()
 		}
 
 		// Draw GUI on top of everything on the real window coordinates.
-		DrawFPS(10, 10);
+		DrawFPS(10, 60);
 #endif
 	}
 	EndDrawing();
