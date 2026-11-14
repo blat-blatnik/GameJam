@@ -531,8 +531,35 @@ bool DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 		}
 	}
 
-	// Return if we're done.
-	return codepointIndex >= numCodepoints;
+	// Return whether we're done.
+	if (codepointIndex >= numCodepoints)
+	{
+		// Draw advance triangle.
+		#if 0
+		Font font = fonts[REGULAR];
+		int index = GetGlyphIndex(font, '\x7F');
+		float width = GetAdvance(font, fontSize, index);
+		x += 3; // padding
+
+		// Break the line if it's too long.
+		if (x + width > maxX)
+		{
+			x = textBox.x;
+			y += GetLineHeight(font, fontSize);
+		}
+
+		DrawTextCodepoint(font, '\x7F', { x + 1, y + 1 }, fontSize, shadowColor);
+		DrawTextCodepoint(font, '\x7F', { x, y }, fontSize, color);
+		#else
+		x = textBox.x + textBox.width - 12;
+		y = textBox.y + textBox.height - 8;
+		DrawTextCodepoint(script->font, '\x7F', { x + 1, y + 1 }, fontSize, shadowColor);
+		DrawTextCodepoint(script->font, '\x7F', { x, y }, fontSize, color);
+		#endif
+
+		return true;
+	}
+	else return false;
 }
 const char* GetScriptExpression(Script script, int paragraphIndex, float time)
 {

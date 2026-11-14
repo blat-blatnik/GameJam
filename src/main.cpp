@@ -73,7 +73,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = &IntroSlideshow;
+Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
 int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
@@ -200,7 +200,6 @@ void GameLoop()
 		BeginTextureMode(FixedRenderTexture);
 		{
 			ClearBackground(BLACK);
-			//DrawText("Hello :)", 100, 100, 64, RED);
 
 			{
 				// draw level and player
@@ -232,6 +231,7 @@ void GameLoop()
 
 				float fadeAlpha = floorf(CurrentSlideAlpha * 6) / 6; // Quantize
 				Color fadeTint = ColorAlpha(WHITE, fadeAlpha);
+				Color textColor = ColorAlpha({ 209, 191, 176 }, fadeAlpha);
 
 				// Draw the slide picture.
 				Slide slide = CurrentSlideshow->slides[CurrentSlideIndex];
@@ -241,13 +241,23 @@ void GameLoop()
 				DrawTexture(frame, padX, padY, fadeTint);
 
 				// Draw the slide text.
+				float textCursorX = 0;
 				float textCursorY = 200;
+				const int TEXT_SIZE = 13;
 				for (int i = 0; i < slide.lines.count; i++)
 				{
+					if (i > 0) textCursorY += GetLineHeight(Arial8Font, TEXT_SIZE);
+
 					const char* line = slide.lines[i];
-					DrawTextCentered(Arial8Font, line, { FIXED_WIDTH / 2, textCursorY }, 13, 0, fadeTint);
-					textCursorY += GetLineHeight(Arial8Font, 13);
+					Vector2 size = MeasureTextEx(Arial8Font, line, TEXT_SIZE, 0);
+					Vector2 center = { FIXED_WIDTH / 2, textCursorY };
+					DrawTextEx(Arial8Font, line, center - size / 2, TEXT_SIZE, 0, textColor);
+					textCursorX = center.x + size.x / 2;
+
 				}
+
+				// Draw advance triangle.
+				DrawTextCentered(Arial8Font, "\x7F", { textCursorX + 6, textCursorY }, TEXT_SIZE, 0, textColor);
 
 				if (CurrentSlideAlphaIncrement > 0)
 				{
@@ -301,7 +311,7 @@ void GameLoop()
 						ScriptParagraphTime = 0;
 						CurrentScript->commandIndex = 0; // Such a mess :(
 						if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
-							CurrentScript = nullptr; // Done with the script! Go back to gameplay, or end the cutscene.
+							CurrentScript = nullptr; // Done with the script!
 					}
 					else ScriptParagraphTime = 9999; // Enough to go over everything.
 				}
