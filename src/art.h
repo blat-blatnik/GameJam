@@ -71,11 +71,11 @@ inline void LoadAllArt()
 	X_FONTS(LoadFont);
 	#undef LoadFont
 
-	#define LoadScript(name, filepath) name = LoadScript("art/" filepath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
+	#define LoadScript(name, filepath) name = GetScript(filepath);
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 
-	#define LoadSlideshow(name, filepath) name = LoadSlideshow("art/" filepath);
+	#define LoadSlideshow(name, filepath) name = GetSlideshow(filepath);
 	X_SLIDESHOWS(LoadSlideshow);
 	#undef LoadSlideshow
 }

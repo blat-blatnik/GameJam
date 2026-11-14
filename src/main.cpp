@@ -26,7 +26,7 @@ static uint32_t selectedLayer = 0;
 static const Level levels[]
 {
 	{
-		.name ="bathroom.level",
+		.name = "test.level",
 		.collision="bathroom_collision.bin",
 		.texture = &Bathroom,
 	},

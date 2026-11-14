@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "art.h"
 
 // Assets
 
@@ -24,6 +25,8 @@ template<class T, int Capacity> struct AssetTable
 
 AssetTable<Texture, 4096> TextureTable;
 AssetTable<Sound, 1024> SoundTable;
+AssetTable<Script, 256> ScriptTable;
+AssetTable<Slideshow, 64> SlideshowTable;
 
 Texture GetTexture(const char* filepath)
 {
@@ -44,6 +47,26 @@ Sound GetSound(const char* filepath)
 		*sound = LoadSound(artPath);
 	}
 	return *sound;
+}
+Script GetScript(const char* filepath)
+{
+	Script* script = &ScriptTable[filepath];
+	if (script->text == nullptr)
+	{
+		const char* artPath = TextFormat("art/%s", filepath);
+		*script = LoadScript(artPath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
+	}
+	return *script;
+}
+Slideshow GetSlideshow(const char* filepath)
+{
+	Slideshow* slideshow = &SlideshowTable[filepath];
+	if (slideshow->slides.count == 0)
+	{
+		const char* artPath = TextFormat("art/%s", filepath);
+		*slideshow = LoadSlideshow(artPath);
+	}
+	return *slideshow;
 }
 
 // Slideshow

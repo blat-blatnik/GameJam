@@ -327,11 +327,6 @@ inline void DrawTextCentered(Font font, const char* text, Vector2 center, float 
 	DrawTextEx(font, text, center - size / 2, fontSize, spacing, tint);
 }
 
-// Assets
-
-Texture GetTexture(const char* filepath);
-Sound GetSound(const char* filepath);
-
 // Slideshow
 
 struct Slide
@@ -373,6 +368,13 @@ Script LoadScript(const char* path, Font regular, Font bold, Font italic, Font b
 void UnloadScript(Script* script); // Unloads all script memory and nullifies the script.
 bool DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, float fontSize, Color color, Color shadowColor, float time); // Draws the script paragraph at the given index. NOTE: This also executes console commands within the paragraph! Returns true if we're done with this paragraph.
 const char* GetScriptExpression(Script script, int paragratphIndex, float time); // Gets the current speaker expression at the given time in the paragraph.
+
+// Assets
+
+Texture GetTexture(const char* filepath);
+Sound GetSound(const char* filepath);
+Script GetScript(const char* filepath);
+Slideshow GetSlideshow(const char* filepath);
 
 // Windowing
 
