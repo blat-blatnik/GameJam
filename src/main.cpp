@@ -27,8 +27,6 @@ static const Level levels[]
 {
 	{
 		.name = "test.level",
-		.collision="bathroom_collision.bin",
-		.texture = &Bathroom,
 	},
 };
 static uint32_t currentLevelIndex =0;
@@ -211,7 +209,6 @@ void GameLoop()
 	// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
 	MousePos = (GetMousePosition() - innerWindowOffset) / scaledSize * FIXED_SIZE;
 	MousePos = Vector2Clamp(MousePos, {0, 0}, FIXED_SIZE);
-	Texture levelTexture = *getCurrentLevel().texture;
 
 	BeginDrawing();
 	{
@@ -230,9 +227,9 @@ void GameLoop()
 						for (uint32_t x = 0; x < gameState.grid.width; x++)
 						{
 							uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
-							DrawTextureRec(levelTexture, Rectangle{
-												(float)(textureIndex % (levelTexture.width/16))*16.f,
-												(float)(textureIndex  /(levelTexture.width/16))*16.f, 16, 16
+							DrawTextureRec(Tilemap, Rectangle{
+												(float)(textureIndex % (Tilemap.width/16))*16.f,
+												(float)(textureIndex  /(Tilemap.width/16))*16.f, 16, 16
 											}, Vector2{x * 16.f, y * 16.f}, WHITE);
 						}
 					}
@@ -349,16 +346,16 @@ void GameLoop()
 		{
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
-				uint32_t selectedTextureX=  selectedTextureIndex % (levelTexture.width/16);
-				uint32_t selectedTextureY=  selectedTextureIndex / (levelTexture.width/16);
+				uint32_t selectedTextureX=  selectedTextureIndex % (Tilemap.width/16);
+				uint32_t selectedTextureY=  selectedTextureIndex / (Tilemap.width/16);
 				
-				uint32_t lastX=  nextSelectedTextureIndex % (levelTexture.width/16) -selectedTextureX +1;
-				uint32_t lastY=  nextSelectedTextureIndex / (levelTexture.width/16) -selectedTextureY +1;
+				uint32_t lastX=  nextSelectedTextureIndex % (Tilemap.width/16) -selectedTextureX +1;
+				uint32_t lastY=  nextSelectedTextureIndex / (Tilemap.width/16) -selectedTextureY +1;
 				for (uint32_t y = 0; y < lastY; y++)
 				{
 					for (uint32_t x = 0; x < lastX; x++){
 						setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f)+x,
-								(uint32_t)floorf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(levelTexture.width/16)));
+								(uint32_t)floorf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(Tilemap.width/16)));
 					}
 				}
 			}
@@ -372,15 +369,15 @@ void GameLoop()
 		}
 		else if (mode == Mode_TileSelection)
 		{
-			DrawTextureEx(levelTexture, {}, 0, 4,WHITE);
-			uint32_t x=  selectedTextureIndex % (levelTexture.width/16);
-			uint32_t y=  selectedTextureIndex / (levelTexture.width/16);
+			DrawTextureEx(Tilemap, {}, 0, 4,WHITE);
+			uint32_t x=  selectedTextureIndex % (Tilemap.width/16);
+			uint32_t y=  selectedTextureIndex / (Tilemap.width/16);
 			uint32_t width = 16*4;
 			uint32_t height = 16*4;
 			if (selectedTextureIndex!=nextSelectedTextureIndex){
 
-				uint32_t nextX=  nextSelectedTextureIndex % (levelTexture.width/16);
-				uint32_t nextY=  nextSelectedTextureIndex / (levelTexture.width/16);
+				uint32_t nextX=  nextSelectedTextureIndex % (Tilemap.width/16);
+				uint32_t nextY=  nextSelectedTextureIndex / (Tilemap.width/16);
 				width *= nextX-x +1;
 				height *= nextY-y +1;
 				
@@ -390,10 +387,10 @@ void GameLoop()
 			{
 				
 				Vector2 mousePos= GetMousePosition();
-				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
-				uint32_t mouseHoverCellX=  mouseHoverCell % (levelTexture.width/16);
-				uint32_t mouseHoverCellY=  mouseHoverCell / (levelTexture.width/16);
-				if (mousePos.x<levelTexture.width*4 && mousePos.y<levelTexture.height*4)
+				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
+				uint32_t mouseHoverCellX=  mouseHoverCell % (Tilemap.width/16);
+				uint32_t mouseHoverCellY=  mouseHoverCell / (Tilemap.width/16);
+				if (mousePos.x< Tilemap.width*4 && mousePos.y< Tilemap.height*4)
 				{
 					DrawRectangleLines(mouseHoverCellX*16*4,mouseHoverCellY*16*4,16*4,16*4,GREEN);
 				}
@@ -401,11 +398,11 @@ void GameLoop()
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
 				Vector2 mousePos= GetMousePosition();
-				if (mousePos.x<levelTexture.width*4 && mousePos.y<levelTexture.height*4)
+				if (mousePos.x< Tilemap.width*4 && mousePos.y< Tilemap.height*4)
 				{
 					if (IsKeyDown(KEY_LEFT_SHIFT))
 					{
-						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
+						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
 						if (selectedTextureIndex>nextSelectedTextureIndex)
 						{
 							uint32_t temp =nextSelectedTextureIndex;
@@ -414,13 +411,13 @@ void GameLoop()
 						}
 					}else
 					{
-						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
+						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
 						nextSelectedTextureIndex = selectedTextureIndex;
 					}
 				}
 			}
 			int32_t layer{};
-			if (GuiComboBox(Rectangle{levelTexture.width*4.f,0,128,32},"Layer 0;Layer 1",&layer))
+			if (GuiComboBox(Rectangle{ Tilemap.width*4.f,0,128,32},"Layer 0;Layer 1",&layer))
 			{
 				selectedLayer = layer;
 			}

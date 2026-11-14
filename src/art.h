@@ -7,7 +7,7 @@
 	X(PlaceholderTexture, "placeholder.png")\
 	X(GridTest, "gridtest.png")\
 	X(DialogBoxTexture, "dialog-box.png")\
-	X(Bathroom, "bathroom_sprites.png")\
+	X(Tilemap, "tilemap.png")\
 
 #endif
 

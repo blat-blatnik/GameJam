@@ -28,8 +28,6 @@ struct Player
 struct Level
 {
 	char name[128];
-	char collision[128];
-	Texture* texture;
 	Vector2 gridSize;
 };
 
