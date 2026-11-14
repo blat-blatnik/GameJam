@@ -23,6 +23,20 @@ static uint32_t nextSelectedTextureIndex = 0;
 static uint32_t selectedLayer = 0;
 #endif
 
+static const Level levels[]
+{
+	{
+		.name ="bathroom.bin",
+		.collision="bathroom_collision.bin",
+		.texture = &Bathroom,
+	},
+};
+static uint32_t currentLevelIndex =0;
+static Level getCurrentLevel()
+{
+	return levels[currentLevelIndex];
+}
+
 RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
@@ -64,7 +78,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 				TraceLog(LOG_INFO, "Loaded level '%s'", filename);
 			else
 				TraceLog(LOG_ERROR, "Level '%s' not found!", filename);
-			TextCopy(levelName, filename);
+			TextCopy(getCurrentLevel().name, filename);
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'level' command.");
 	}
@@ -191,7 +205,7 @@ void GameLoop()
 	// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
 	MousePos = (GetMousePosition() - innerWindowOffset) / scaledSize * FIXED_SIZE;
 	MousePos = Vector2Clamp(MousePos, {0, 0}, FIXED_SIZE);
-
+	Texture levelTexture = *getCurrentLevel().texture;
 
 	BeginDrawing();
 	{
@@ -210,9 +224,9 @@ void GameLoop()
 						for (uint32_t x = 0; x < gameState.grid.width; x++)
 						{
 							uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
-							DrawTextureRec(Bathroom, Rectangle{
-												(float)(textureIndex % (Bathroom.width/16))*16.f,
-												(float)(textureIndex  /(Bathroom.width/16))*16.f, 16, 16
+							DrawTextureRec(levelTexture, Rectangle{
+												(float)(textureIndex % (levelTexture.width/16))*16.f,
+												(float)(textureIndex  /(levelTexture.width/16))*16.f, 16, 16
 											}, Vector2{x * 16.f, y * 16.f}, WHITE);
 						}
 					}
@@ -329,16 +343,16 @@ void GameLoop()
 		{
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
-				uint32_t selectedTextureX=  selectedTextureIndex % (Bathroom.width/16);
-				uint32_t selectedTextureY=  selectedTextureIndex / (Bathroom.width/16);
+				uint32_t selectedTextureX=  selectedTextureIndex % (levelTexture.width/16);
+				uint32_t selectedTextureY=  selectedTextureIndex / (levelTexture.width/16);
 				
-				uint32_t lastX=  nextSelectedTextureIndex % (Bathroom.width/16) -selectedTextureX +1;
-				uint32_t lastY=  nextSelectedTextureIndex / (Bathroom.width/16) -selectedTextureY +1;
+				uint32_t lastX=  nextSelectedTextureIndex % (levelTexture.width/16) -selectedTextureX +1;
+				uint32_t lastY=  nextSelectedTextureIndex / (levelTexture.width/16) -selectedTextureY +1;
 				for (uint32_t y = 0; y < lastY; y++)
 				{
 					for (uint32_t x = 0; x < lastX; x++){
 						setGridTile(&gameState.grid, (uint32_t)nearbyintf(MousePos.x / 16.f)+x,
-								(uint32_t)nearbyintf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(Bathroom.width/16)));
+								(uint32_t)nearbyintf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(levelTexture.width/16)));
 					}
 				}
 			}
@@ -352,15 +366,15 @@ void GameLoop()
 		}
 		else if (mode == Mode_TileSelection)
 		{
-			DrawTextureEx(Bathroom, {}, 0, 4,WHITE);
-			uint32_t x=  selectedTextureIndex % (Bathroom.width/16);
-			uint32_t y=  selectedTextureIndex / (Bathroom.width/16);
+			DrawTextureEx(levelTexture, {}, 0, 4,WHITE);
+			uint32_t x=  selectedTextureIndex % (levelTexture.width/16);
+			uint32_t y=  selectedTextureIndex / (levelTexture.width/16);
 			uint32_t width = 16*4;
 			uint32_t height = 16*4;
 			if (selectedTextureIndex!=nextSelectedTextureIndex){
 
-				uint32_t nextX=  nextSelectedTextureIndex % (Bathroom.width/16);
-				uint32_t nextY=  nextSelectedTextureIndex / (Bathroom.width/16);
+				uint32_t nextX=  nextSelectedTextureIndex % (levelTexture.width/16);
+				uint32_t nextY=  nextSelectedTextureIndex / (levelTexture.width/16);
 				width *= nextX-x +1;
 				height *= nextY-y +1;
 				
@@ -370,19 +384,22 @@ void GameLoop()
 			{
 				
 				Vector2 mousePos= GetMousePosition();
-				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
-				uint32_t mouseHoverCellX=  mouseHoverCell % (Bathroom.width/16);
-				uint32_t mouseHoverCellY=  mouseHoverCell / (Bathroom.width/16);
-				DrawRectangleLines(mouseHoverCellX*16*4,mouseHoverCellY*16*4,16*4,16*4,GREEN);
+				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
+				uint32_t mouseHoverCellX=  mouseHoverCell % (levelTexture.width/16);
+				uint32_t mouseHoverCellY=  mouseHoverCell / (levelTexture.width/16);
+				if (mousePos.x<levelTexture.width*4 && mousePos.y<levelTexture.height*4)
+				{
+					DrawRectangleLines(mouseHoverCellX*16*4,mouseHoverCellY*16*4,16*4,16*4,GREEN);
+				}
 			}
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
 				Vector2 mousePos= GetMousePosition();
-				if (mousePos.x<Bathroom.width*4.f && mousePos.y<Bathroom.height*4.f)
+				if (mousePos.x<levelTexture.width*4 && mousePos.y<levelTexture.height*4)
 				{
 					if (IsKeyDown(KEY_LEFT_SHIFT))
 					{
-						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
 						if (selectedTextureIndex>nextSelectedTextureIndex)
 						{
 							uint32_t temp =nextSelectedTextureIndex;
@@ -391,18 +408,15 @@ void GameLoop()
 						}
 					}else
 					{
-						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Bathroom.width/16;
+						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * levelTexture.width/16;
 						nextSelectedTextureIndex = selectedTextureIndex;
 					}
 				}
 			}
-			if (GuiButton(Rectangle{Bathroom.width*4.f,0,64,32},"Layer 0"))
+			int32_t layer{};
+			if (GuiComboBox(Rectangle{levelTexture.width*4.f,0,128,32},"Layer 0;Layer 1",&layer))
 			{
-				selectedLayer = 0;
-			}
-			if (GuiButton(Rectangle{Bathroom.width*4.f+68,0,64,32},"Layer 1"))
-			{
-				selectedLayer = 1;
+				selectedLayer = layer;
 			}
 		}
 		else if (mode == Mode_Console)
@@ -420,11 +434,11 @@ void GameLoop()
 
 		if (IsKeyPressed(KEY_P))
 		{
-			saveLevel(levelName,&gameState.grid);
+			saveLevel(getCurrentLevel().name,&gameState.grid);
 		}
 		if (IsKeyPressed(KEY_L))
 		{
-			loadLevel(levelName,&gameState);
+			loadLevel(getCurrentLevel().name,&gameState);
 		}
 
 		// Draw GUI on top of everything on the real window coordinates.
@@ -434,6 +448,19 @@ void GameLoop()
 	EndDrawing();
 }
 
+static bool initializeGameState(GameState* gameState)
+{
+	bool success = gameState != nullptr;
+	if (success)
+	{
+		if (!loadLevel(getCurrentLevel().name, gameState))
+		{
+			success = true;
+			gameState->grid = initializeGrid(480 / 16 + 1, 270 / 16 + 1, 2);
+		}
+	}
+	return success;
+}
 int main()
 {
 	// Typically working directory on windows starts as the EXE directory, but during dev that's in bin/Debug/Game.exe, and it could change.
