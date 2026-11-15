@@ -2,13 +2,7 @@
 #include <cstdint>
 
 
-enum GridTile: uint32_t
-{
-	GridTile_None = 0,
-	GridTile_Floor,
-	GridTile_Wall,
-	GridTile_Count
-};
+typedef uint32_t GridTile;
 
 struct Grid
 {
@@ -35,6 +29,7 @@ struct GameState
 {
 	Player player;
 	Grid grid;
+	uint8_t* collision;
 };
 
 static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)
@@ -54,7 +49,7 @@ static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)
 
 inline GridTile getGridTile(Grid* grid, uint32_t x, uint32_t y, uint32_t layer)
 {
-	GridTile result = GridTile_None;
+	GridTile result = 0;
 	if (grid != nullptr)
 	{
 		if (x < grid->width && y < grid->height && layer < grid->layers)
@@ -94,16 +89,16 @@ inline bool setGridTile(Grid* grid, uint32_t x, uint32_t y, uint32_t layer, Grid
 
 static bool saveCollision(const char* fileName, uint8_t* collision, uint32_t size)
 {
-	SaveFileData(fileName, collision, size);
+	return SaveFileData(TextFormat("art/%s", fileName), collision, size);
 }
 
-static bool loadCollision(const char* fileName, Texture* texture, uint8_t** collision, uint32_t size)
+static bool loadCollision(const char* fileName, Texture* texture, uint8_t** collision)
 {
 	bool success = true;
-	if (FileExists(fileName))
+	if (FileExists(TextFormat("art/%s", fileName)))
 	{
 		int fileSize = 0;
-		uint8_t* data = LoadFileData(fileName, &fileSize);
+		uint8_t* data = LoadFileData(TextFormat("art/%s", fileName), &fileSize);
 		if (fileSize == (texture->width / 16) * (texture->height / 16))
 		{
 			*collision = data;

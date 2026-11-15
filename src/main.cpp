@@ -6,6 +6,8 @@
 #define FIXED_WIDTH 480 // 1920/4
 #define FIXED_HEIGHT 270
 
+static const char* collisionFile ="collision.bin";
+
 #define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
 
 enum Mode :uint32_t
@@ -363,28 +365,42 @@ void GameLoop()
 			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
 			{
 				setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f),
-							(uint32_t)floorf(MousePos.y / 16.f), selectedLayer, GridTile_None);
+							(uint32_t)floorf(MousePos.y / 16.f), selectedLayer, 0);
 			}
 
 		}
 		else if (mode == Mode_TileSelection)
 		{
 			DrawTextureEx(Tilemap, {}, 0, 4,WHITE);
-			uint32_t x=  selectedTextureIndex % (Tilemap.width/16);
-			uint32_t y=  selectedTextureIndex / (Tilemap.width/16);
-			uint32_t width = 16*4;
-			uint32_t height = 16*4;
-			if (selectedTextureIndex!=nextSelectedTextureIndex){
-
-				uint32_t nextX=  nextSelectedTextureIndex % (Tilemap.width/16);
-				uint32_t nextY=  nextSelectedTextureIndex / (Tilemap.width/16);
-				width *= nextX-x +1;
-				height *= nextY-y +1;
-				
+			{// draw collision bound
+				for (uint32_t y = 0; y < Tilemap.height/16; y++)
+				{
+					for (uint32_t x = 0; x < Tilemap.width/16; x++)
+					{
+						if (gameState.collision[x+y*Tilemap.width/16])
+						{
+							DrawRectangleLines(x*16*4,y*16*4,16*4,16*4,RED);
+						}
+					}
+				}
 			}
+			{// draw selected region
+				uint32_t x=  selectedTextureIndex % (Tilemap.width/16);
+				uint32_t y=  selectedTextureIndex / (Tilemap.width/16);
+				uint32_t width = 16*4;
+				uint32_t height = 16*4;
+				if (selectedTextureIndex!=nextSelectedTextureIndex){
+
+					uint32_t nextX=  nextSelectedTextureIndex % (Tilemap.width/16);
+					uint32_t nextY=  nextSelectedTextureIndex / (Tilemap.width/16);
+					width *= nextX-x +1;
+					height *= nextY-y +1;
+				
+				}
 			
-			DrawRectangleLines(x*16*4,y*16*4,width,height,RED);
-			{
+				DrawRectangleLines(x*16*4,y*16*4,width,height,BLUE);
+			}
+			{// draw hovered tile bounds
 				
 				Vector2 mousePos= GetMousePosition();
 				uint32_t mouseHoverCell = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
@@ -395,6 +411,16 @@ void GameLoop()
 					DrawRectangleLines(mouseHoverCellX*16*4,mouseHoverCellY*16*4,16*4,16*4,GREEN);
 				}
 			}
+			
+			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+			{
+				Vector2 mousePos= GetMousePosition();
+				if (mousePos.x< Tilemap.width*4 && mousePos.y< Tilemap.height*4)
+				{
+					uint32_t clickTileIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
+					gameState.collision[clickTileIndex] = !gameState.collision[clickTileIndex];
+				}
+			}
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
 				Vector2 mousePos= GetMousePosition();
@@ -402,7 +428,7 @@ void GameLoop()
 				{
 					if (IsKeyDown(KEY_LEFT_SHIFT))
 					{
-						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
+						nextSelectedTextureIndex =(int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * (Tilemap.width/16);
 						if (selectedTextureIndex>nextSelectedTextureIndex)
 						{
 							uint32_t temp =nextSelectedTextureIndex;
@@ -411,16 +437,33 @@ void GameLoop()
 						}
 					}else
 					{
-						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * Tilemap.width/16;
+						selectedTextureIndex = (int32_t)mousePos.x/(16*4)+ (int32_t)mousePos.y/(16*4) * (Tilemap.width/16);
 						nextSelectedTextureIndex = selectedTextureIndex;
 					}
 				}
 			}
-			int32_t layer{};
-			if (GuiComboBox(Rectangle{ Tilemap.width*4.f,0,128,32},"Layer 0;Layer 1",&layer))
+			if (selectedLayer==0)
 			{
-				selectedLayer = layer;
+				if (GuiButton(Rectangle{ Tilemap.width*4.f,0,64,32},"Layer 0"))
+				{
+					selectedLayer = 1;
+				}
+			}else
+			{
+				if (GuiButton(Rectangle{ Tilemap.width*4.f,0,64,32},"Layer 1"))
+				{
+					selectedLayer = 0;
+				}
 			}
+			if (GuiButton(Rectangle{ Tilemap.width*4.f +  64,0,64,32},"Save collision"))
+			{
+				saveCollision(collisionFile,gameState.collision,(Tilemap.width/16) * (Tilemap.height/16));
+			}
+			if (GuiButton(Rectangle{ Tilemap.width*4.f + 128,0,64,32},"load collision"))
+			{
+				loadCollision(collisionFile,&Tilemap,&gameState.collision);
+			}
+			
 		}
 		else if (mode == Mode_Console)
 		{
@@ -462,9 +505,17 @@ static bool initializeGameState(GameState* gameState)
 	{
 		if (!loadLevel(getCurrentLevel().name, gameState))
 		{
-			success = true;
 			gameState->grid = initializeGrid(480 / 16 + 1, 270 / 16 + 1, 2);
 		}
+		if (gameState->collision==nullptr)
+		{
+			if (!loadCollision(collisionFile, &Tilemap,&gameState->collision))
+			{
+				gameState->collision= (uint8_t*)malloc(Tilemap.width/16*Tilemap.height/16);
+				memset(gameState->collision,0,Tilemap.width/16*Tilemap.height/16);
+			}
+		}
+		
 	}
 	return success;
 }
