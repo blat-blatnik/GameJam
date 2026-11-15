@@ -25,6 +25,7 @@ struct Player
 {
 	Vector2 position;
 	Facing direction;
+	float health = 100; // [0,100]
 };
 struct Event
 {

@@ -7,6 +7,7 @@
 	X(Tilemap, "tilemap.png")\
 	X(DialogBoxTexture, "dialog-box.png")\
 	X(PlayerSpritesheet, "player.png")\
+	X(HealthbarSpritesheet, "healthbar.png")\
 
 #endif
 

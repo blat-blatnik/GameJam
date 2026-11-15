@@ -14,7 +14,6 @@
 static const char* collisionFile ="collision.bin";
 
 #define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
-#define PLAYER_HITBOX_SIZE Vector2{ PLAYER_WIDTH_IN_TILES * TILE_SIZE, PLAYER_HEIGHT_IN_TILES * TILE_SIZE }
 
 enum Mode :uint32_t
 {
@@ -200,6 +199,9 @@ void GameLoop()
 		}
 		player->position.x = playerHitbox.x;
 		player->position.y = playerHitbox.y - 26;
+
+		//@TODO Health drain for testing the health bar.
+		player->health -= 5 * GetFrameTime();
 	}
 
 	if (IsKeyPressed(KEY_GRAVE))
@@ -269,37 +271,40 @@ void GameLoop()
 		{
 			ClearBackground(BLACK);
 
+			// Draw level.
+			for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
 			{
-				// Draw level.
-				for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
+				for (uint32_t y = 0; y < currentLevel->grid.height; y++)
 				{
-					for (uint32_t y = 0; y < currentLevel->grid.height; y++)
+					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 					{
-						for (uint32_t x = 0; x < currentLevel->grid.width; x++)
-						{
-							uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
-							DrawTextureRec(Tilemap, Rectangle{
-												(float)(textureIndex % (Tilemap.width/16))*16.f,
-												(float)(textureIndex  /(Tilemap.width/16))*16.f, 16, 16
-											}, Vector2{x * 16.f, y * 16.f}, WHITE);
-						}
+						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
+						DrawTextureRec(Tilemap, Rectangle{
+							(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
+							(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
+							}, Vector2{ x * 16.f, y * 16.f }, WHITE);
 					}
 				}
-
-				// Draw player.
-				Player player = gameState.player;
-				Vector2 uv = {};
-				switch (player.direction)
-				{
-					case Direction_Left: uv = {0,14}; break;
-					case Direction_Right: uv = {32,14}; break;
-					case Direction_Up: uv = {16,0}; break;
-					case Direction_Down: uv = {16,32}; break;
-				}
-				Rectangle rect = { player.position.x, player.position.y, 16, 32 };
-				DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, WHITE);
 			}
 
+			// Draw player.
+			Player player = gameState.player;
+			Vector2 uv = {};
+			switch (player.direction)
+			{
+				case Direction_Left: uv = { 0, 14 }; break;
+				case Direction_Right: uv = { 32, 14 }; break;
+				case Direction_Up: uv = { 16, 0 }; break;
+				case Direction_Down: uv = { 16, 32 }; break;
+			}
+			Rectangle rect = { player.position.x, player.position.y, 16, 32 };
+			DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, WHITE);
+
+			// Draw healthbar.
+			float healtbarEnd = Remap(player.health, 0, 100, 0, 60);
+			DrawTexturePro(HealthbarSpritesheet, { 0, 0, 64, 8 }, { 2, 2, 64, 8 }, {}, 0, WHITE);
+			DrawTexturePro(HealthbarSpritesheet, { 2, 9, healtbarEnd, 4 }, { 4, 4, healtbarEnd, 4 }, {}, 0, WHITE);
+			
 			// Update and render slideshow.
 			if (CurrentSlideshow)
 			{
