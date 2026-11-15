@@ -58,6 +58,7 @@ X_SCRIPTS(DefineScript)
 X_SLIDESHOWS(DefineSlideshow)
 
 inline void LoadAllArt()
+
 {
 	#define LoadTexture(name, filepath) name = GetTexture(filepath);
 	X_TEXTURES(LoadTexture);

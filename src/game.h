@@ -2,13 +2,7 @@
 #include <cstdint>
 
 
-enum GridTile: uint32_t
-{
-	GridTile_None = 0,
-	GridTile_Floor,
-	GridTile_Wall,
-	GridTile_Count
-};
+typedef uint32_t GridTile;
 
 struct Grid
 {
@@ -24,17 +18,26 @@ struct Player
 	Vector2 position;
 	float rotation;
 };
+struct Event
+{
+	uint32_t cellX;
+	uint32_t cellY;
+	char scriptName[128];
+};
 
 struct Level
 {
-	char name[128];
-	Vector2 gridSize;
+	Vector2 startingPosition;
+	Grid grid;
+	uint32_t eventsCount;
+	Event events[32];
 };
 
 struct GameState
 {
 	Player player;
-	Grid grid;
+	uint8_t* collision;
+	Level level;
 };
 
 static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)
@@ -54,7 +57,7 @@ static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)
 
 inline GridTile getGridTile(Grid* grid, uint32_t x, uint32_t y, uint32_t layer)
 {
-	GridTile result = GridTile_None;
+	GridTile result = 0;
 	if (grid != nullptr)
 	{
 		if (x < grid->width && y < grid->height && layer < grid->layers)
@@ -94,16 +97,16 @@ inline bool setGridTile(Grid* grid, uint32_t x, uint32_t y, uint32_t layer, Grid
 
 static bool saveCollision(const char* fileName, uint8_t* collision, uint32_t size)
 {
-	SaveFileData(fileName, collision, size);
+	return SaveFileData(TextFormat("art/%s", fileName), collision, size);
 }
 
-static bool loadCollision(const char* fileName, Texture* texture, uint8_t** collision, uint32_t size)
+static bool loadCollision(const char* fileName, Texture* texture, uint8_t** collision)
 {
 	bool success = true;
-	if (FileExists(fileName))
+	if (FileExists(TextFormat("art/%s", fileName)))
 	{
 		int fileSize = 0;
-		uint8_t* data = LoadFileData(fileName, &fileSize);
+		uint8_t* data = LoadFileData(TextFormat("art/%s", fileName), &fileSize);
 		if (fileSize == (texture->width / 16) * (texture->height / 16))
 		{
 			*collision = data;
@@ -117,13 +120,13 @@ static bool loadCollision(const char* fileName, Texture* texture, uint8_t** coll
 }
 
 
-static bool saveLevel(const char* fileName, Grid* grid)
+static bool saveLevel(const char* levelName,Level* level)
 {
-	const char* filePath = TextFormat("art/%s", fileName);
+	const char* filePath = TextFormat("art/%s", levelName);
 	FILE* file = fopen(filePath, "wb");
 	bool success = file != nullptr;
-	fwrite(grid, sizeof(Grid), 1, file);
-	fwrite(grid->tiles, getGridSize(grid), 1, file);
+	fwrite(level, sizeof(Level), 1, file);
+	fwrite(level->grid.tiles, getGridSize(&level->grid), 1, file);
 	fclose(file);
 	return success;
 }
@@ -131,7 +134,6 @@ static bool saveLevel(const char* fileName, Grid* grid)
 static bool loadLevel(const char* fileName, GameState* gameState)
 {
 	const char* filePath = TextFormat("art/%s", fileName);
-
 	bool result = true;
 	if (FileExists(filePath))
 	{
@@ -139,11 +141,13 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 		uint8_t* data = LoadFileData(filePath, &fileSize);
 		if (fileSize >= sizeof(Grid))
 		{
-			gameState->grid = *(Grid*)data;
-			if (fileSize == sizeof(Grid) + gameState->grid.width * gameState->grid.height * gameState->grid.layers *
+			Level *level = (Level*) data;
+			if (fileSize == sizeof(Level) + level->grid.width * level->grid.height * level->grid.layers *
 				sizeof(GridTile))
 			{
-				gameState->grid.tiles = (GridTile*)(data + sizeof(Grid));
+				level->grid.tiles = (GridTile*)(data + sizeof(Level));
+				gameState->level = *level;
+				gameState->player.position = gameState->level.startingPosition;
 			}
 			else
 			{
