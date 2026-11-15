@@ -482,6 +482,36 @@ void GameLoop()
 			}
 		}
 
+		static Mode lastFrameMode = mode;
+		static float modeTime =0;
+		if (lastFrameMode!=mode)
+		{
+			lastFrameMode = mode;
+			modeTime =1.f;
+		}
+		if ( modeTime>0)
+		{
+			modeTime-= GetFrameTime() *2.f;
+			
+			switch (mode)
+			{
+				case Mode_Console:
+				GuiDrawText("Mode Console",{32,0,128,64},0,  RED);
+				break;
+			case Mode_Normal:
+				GuiDrawText("Mode Normal",{32,0,128,64},0,  RED);
+				break;
+			case Mode_TileSelection:
+				GuiDrawText("Mode Tile Selection",{32,0,128,64},0,  RED);
+				break;
+			case Mode_Paint:
+				GuiDrawText("Mode Paint",{32,0,128,64},0,RED);
+				break;
+			default: ;
+			}
+			
+		}
+		
 		// Draw GUI on top of everything on the real window coordinates.
 		DrawFPS(10, 60);
 #endif
