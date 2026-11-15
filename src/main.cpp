@@ -21,6 +21,7 @@ enum Mode :uint32_t
 	Mode_Normal,
 	Mode_TileSelection,
 	Mode_Paint,
+	Mode_Script,
 	Mode_Console,
 };
 
@@ -207,6 +208,10 @@ void GameLoop()
 		if (IsKeyPressed(KEY_THREE))
 		{
 			mode = Mode_Paint;
+		}
+		if (IsKeyPressed(KEY_FOUR))
+		{
+			mode = Mode_Script;
 		}
 	}
 
@@ -506,6 +511,17 @@ void GameLoop()
 			}
 			if (ConsoleText[0] == '`') memmove(ConsoleText, ConsoleText + 1, sizeof ConsoleText - 1); //@HACK pressing ` to bring up the console also types ` into the text box, so just skip that.
 			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);
+		}else if (mode==Mode_Script)
+		{
+			static Vector2 selectedCell{};
+			static char tempScript[128]{};
+			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+			{
+				selectedCell = MousePos;
+				memset(tempScript, 0, sizeof tempScript);
+			}
+			GuiTextBox({8.f,8.f,128.f,64.f},tempScript,48,true);
+			
 		}
 
 		if (mode != Mode_Console)
@@ -541,6 +557,9 @@ void GameLoop()
 				break;
 			case Mode_TileSelection:
 				GuiDrawText("Mode Tile Selection",{32,0,128,64},0,  RED);
+				break;
+			case Mode_Script:
+				GuiDrawText("Mode Scripting",{32,0,128,64},0,  RED);
 				break;
 			case Mode_Paint:
 				GuiDrawText("Mode Paint",{32,0,128,64},0,RED);
