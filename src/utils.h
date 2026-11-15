@@ -76,6 +76,22 @@ inline Rectangle ExpandRectangle(Rectangle r, float expand)
 	r.height += expand;
 	return r;
 }
+inline bool ResolveCollisions(Rectangle* a, Rectangle b)
+{
+	if (CheckCollisionRecs(*a, b))
+	{
+		float l = (a->x + a->width) - b.x;
+		float u = (a->y + a->height) - b.y;
+		float r = (b.x + b.width) - a->x;
+		float d = (b.y + b.height) - a->y;
+		float dx = l < r ? -l : +r;
+		float dy = u < d ? -u : +d;
+		if (fabsf(dx) < fabsf(dy)) a->x += dx;
+		else a->y += dy;
+		return true;
+	}
+	else return false;
+}
 
 // Interpolation
 

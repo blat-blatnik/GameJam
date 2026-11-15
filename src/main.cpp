@@ -5,10 +5,16 @@
 #include "game.h"
 #define FIXED_WIDTH 480 // 1920/4
 #define FIXED_HEIGHT 270
+#define TILE_SIZE 16
+#define ROOM_WIDTH_IN_TILES 30 // 480/16
+#define ROOM_HEIGHT_IN_TILES 17 // 270/16
+#define PLAYER_WIDTH_IN_TILES 1 // in tiles
+#define PLAYER_HEIGHT_IN_TILES 2 // in tiles
 
 static const char* collisionFile ="collision.bin";
 
 #define FIXED_SIZE Vector2{ FIXED_WIDTH, FIXED_HEIGHT }
+#define PLAYER_HITBOX_SIZE Vector2{ PLAYER_WIDTH_IN_TILES * TILE_SIZE, PLAYER_HEIGHT_IN_TILES * TILE_SIZE }
 
 enum Mode :uint32_t
 {
@@ -113,7 +119,7 @@ void GameLoop()
 	if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT))
 		ToggleFullscreen_FixedForWeb();
 
-	// update
+	// Calculate input velocity.
 	Vector2 inputVelocity{};
 	if (IsGamepadAvailable(0))
 	{
@@ -128,7 +134,6 @@ void GameLoop()
 			inputVelocity.y = 0;
 		}
 	}
-
 	if (IsKeyDown(KEY_A))
 	{
 		inputVelocity.x -= 1.0f;
@@ -146,7 +151,36 @@ void GameLoop()
 		inputVelocity.y += 1.0f;
 	}
 	inputVelocity = Vector2Normalize(inputVelocity);
-	gameState.player.position += inputVelocity * 100.f * GetFrameTime();
+
+	// Move the player
+	Player* player = &gameState.player;
+	Vector2 playerVelocity = 100.0f * inputVelocity;
+	player->position += playerVelocity * GetFrameTime();
+
+	// Resolve any collisions with tiles.
+	Rectangle playerHitbox = { player->position.x, player->position.y, PLAYER_HITBOX_SIZE.x, PLAYER_HITBOX_SIZE.y };
+	int tileX0 = (int)floorf(player->position.x / TILE_SIZE);
+	int tileY0 = (int)floorf(player->position.y / TILE_SIZE);
+	for (int tileY = tileY0; tileY <= tileY0 + PLAYER_HEIGHT_IN_TILES; tileY++)
+	{
+		for (int tileX = tileX0; tileX <= tileX0 + PLAYER_WIDTH_IN_TILES; tileX++)
+		{
+			// Loop over all tiles neighboring the player.
+			if (tileX >= 0 and tileX < ROOM_WIDTH_IN_TILES and tileY >= 0 and tileY < ROOM_HEIGHT_IN_TILES)
+			{
+				int tileIndex = tileY * gameState.level.grid.width + tileX;
+				GridTile tileID = gameState.level.grid.tiles[tileIndex];
+				uint8_t impassible = gameState.collision[tileID];
+				if (impassible)
+				{
+					Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
+					ResolveCollisions(&playerHitbox, tileHitbox);
+				}
+			}
+		}
+	}
+	player->position.x = playerHitbox.x;
+	player->position.y = playerHitbox.y;
 
 	if (IsKeyPressed(KEY_GRAVE))
 	{
@@ -228,7 +262,7 @@ void GameLoop()
 					}
 				}
 
-				DrawRectangleV(gameState.player.position, Vector2{16, 32}, DARKGREEN);
+				DrawRectangleV(gameState.player.position, PLAYER_HITBOX_SIZE, DARKGREEN);
 			}
 
 			// Update and render slideshow.
@@ -522,12 +556,12 @@ void GameLoop()
 	}
 	EndDrawing();
 }
+
 static bool initalizeLevel(Level* level)
 {
 	level->grid = initializeGrid(480 / 16 + 1, 270 / 16 + 1, 2);
 	return true;
 }
-
 static bool initializeGameState(GameState* gameState)
 {
 	bool success = gameState != nullptr;
@@ -549,6 +583,7 @@ static bool initializeGameState(GameState* gameState)
 	}
 	return success;
 }
+
 int main()
 {
 	// Typically working directory on windows starts as the EXE directory, but during dev that's in bin/Debug/Game.exe, and it could change.
