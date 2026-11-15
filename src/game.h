@@ -4,6 +4,14 @@
 
 typedef uint32_t GridTile;
 
+enum Facing
+{
+	Direction_Right = 0,
+	Direction_Up = 1,
+	Direction_Left = 2,
+	Direction_Down = 3,
+};
+
 struct Grid
 {
 	uint32_t width;
@@ -16,7 +24,7 @@ struct Grid
 struct Player
 {
 	Vector2 position;
-	float rotation;
+	Facing direction;
 };
 struct Event
 {

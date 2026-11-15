@@ -156,12 +156,28 @@ void GameLoop()
 	// Move the player.
 	if (not CurrentSlideshow and not CurrentScript)
 	{
+		// Update the position
 		Player* player = &gameState.player;
 		Vector2 playerVelocity = 100.0f * inputVelocity;
 		player->position += playerVelocity * GetFrameTime();
 
+		// Update the facing direction.
+		if (playerVelocity.x != 0 or playerVelocity.y != 0)
+		{
+			if (fabsf(playerVelocity.x) > fabsf(playerVelocity.y))
+			{
+				if (playerVelocity.x > 0) player->direction = Direction_Right;
+				else player->direction = Direction_Left;
+			}
+			else
+			{
+				if (playerVelocity.y > 0) player->direction = Direction_Down;
+				else player->direction = Direction_Up;
+			}
+		}
+
 		// Resolve any collisions with tiles.
-		Rectangle playerHitbox = { player->position.x, player->position.y, PLAYER_HITBOX_SIZE.x, PLAYER_HITBOX_SIZE.y };
+		Rectangle playerHitbox = { player->position.x, player->position.y + 26, TILE_SIZE, 6 };
 		int tileX0 = (int)floorf(player->position.x / TILE_SIZE);
 		int tileY0 = (int)floorf(player->position.y / TILE_SIZE);
 		for (int tileY = tileY0; tileY <= tileY0 + PLAYER_HEIGHT_IN_TILES; tileY++)
@@ -183,7 +199,7 @@ void GameLoop()
 			}
 		}
 		player->position.x = playerHitbox.x;
-		player->position.y = playerHitbox.y;
+		player->position.y = playerHitbox.y - 26;
 	}
 
 	if (IsKeyPressed(KEY_GRAVE))
@@ -254,7 +270,7 @@ void GameLoop()
 			ClearBackground(BLACK);
 
 			{
-				// draw level and player
+				// Draw level.
 				for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
 				{
 					for (uint32_t y = 0; y < currentLevel->grid.height; y++)
@@ -270,7 +286,18 @@ void GameLoop()
 					}
 				}
 
-				DrawRectangleV(gameState.player.position, PLAYER_HITBOX_SIZE, DARKGREEN);
+				// Draw player.
+				Player player = gameState.player;
+				Vector2 uv = {};
+				switch (player.direction)
+				{
+					case Direction_Left: uv = {0,14}; break;
+					case Direction_Right: uv = {32,14}; break;
+					case Direction_Up: uv = {16,0}; break;
+					case Direction_Down: uv = {16,32}; break;
+				}
+				Rectangle rect = { player.position.x, player.position.y, 16, 32 };
+				DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, WHITE);
 			}
 
 			// Update and render slideshow.
@@ -368,8 +395,6 @@ void GameLoop()
 					else ScriptParagraphTime = 9999; // Enough to go over everything.
 				}
 			}
-
-			DrawTextureV(PlaceholderTexture, MousePos, WHITE);
 		}
 		EndTextureMode();
 

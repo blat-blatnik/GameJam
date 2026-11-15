@@ -4,10 +4,9 @@
 #ifndef X_TEXTURES
 #define X_TEXTURES(X)\
 	/* X(variable_name, filepath) */\
-	X(PlaceholderTexture, "placeholder.png")\
-	X(GridTest, "gridtest.png")\
-	X(DialogBoxTexture, "dialog-box.png")\
 	X(Tilemap, "tilemap.png")\
+	X(DialogBoxTexture, "dialog-box.png")\
+	X(PlayerSpritesheet, "player.png")\
 
 #endif
 
