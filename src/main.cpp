@@ -71,7 +71,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			const char* extension = GetFileExtension(filename);
 			if (not extension) filename = TextFormat("%s.level", filename);
 
-			if (loadLevel(filename, &gameState.level))
+			if (loadLevel(filename, &gameState))
 				TraceLog(LOG_INFO, "Loaded level '%s'", filename);
 			else
 				TraceLog(LOG_ERROR, "Level '%s' not found!", filename);
@@ -454,6 +454,10 @@ void GameLoop()
 			{
 				loadCollision(collisionFile,&Tilemap,&gameState.collision);
 			}
+			if (GuiButton(Rectangle{ Tilemap.width*4.f + 192,0,64,32},"save player pos to level"))
+			{
+				gameState.level.startingPosition =gameState.player.position;
+			}
 			
 		}
 		else if (mode == Mode_Console)
@@ -478,7 +482,7 @@ void GameLoop()
 			}
 			if (IsKeyPressed(KEY_L))
 			{
-				loadLevel(currentLevelName, &gameState.level);
+				loadLevel(currentLevelName, &gameState);
 			}
 		}
 
@@ -529,7 +533,7 @@ static bool initializeGameState(GameState* gameState)
 	bool success = gameState != nullptr;
 	if (success)
 	{
-		if (!loadLevel(currentLevelName,&gameState->level))
+		if (!loadLevel(currentLevelName,gameState))
 		{
 			initalizeLevel(&gameState->level);
 		}

@@ -131,7 +131,7 @@ static bool saveLevel(const char* levelName,Level* level)
 	return success;
 }
 
-static bool loadLevel(const char* fileName, Level* outLevel)
+static bool loadLevel(const char* fileName, GameState* gameState)
 {
 	const char* filePath = TextFormat("art/%s", fileName);
 	bool result = true;
@@ -146,7 +146,8 @@ static bool loadLevel(const char* fileName, Level* outLevel)
 				sizeof(GridTile))
 			{
 				level->grid.tiles = (GridTile*)(data + sizeof(Level));
-				*outLevel = *level;
+				gameState->level = *level;
+				gameState->player.position = gameState->level.startingPosition;
 			}
 			else
 			{
