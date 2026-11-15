@@ -202,8 +202,8 @@ void GameLoop()
 	float remainingWidth = windowWidth - scaledWidth;
 	float remainingHeight = windowHeight - scaledHeight;
 	Vector2 innerWindowOffset = {
-		remainingWidth / 2,
-		remainingHeight / 2,
+		roundf(remainingWidth / 2),
+		roundf(remainingHeight / 2),
 	};
 
 	// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
