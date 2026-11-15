@@ -153,35 +153,38 @@ void GameLoop()
 	}
 	inputVelocity = Vector2Normalize(inputVelocity);
 
-	// Move the player
-	Player* player = &gameState.player;
-	Vector2 playerVelocity = 100.0f * inputVelocity;
-	player->position += playerVelocity * GetFrameTime();
-
-	// Resolve any collisions with tiles.
-	Rectangle playerHitbox = { player->position.x, player->position.y, PLAYER_HITBOX_SIZE.x, PLAYER_HITBOX_SIZE.y };
-	int tileX0 = (int)floorf(player->position.x / TILE_SIZE);
-	int tileY0 = (int)floorf(player->position.y / TILE_SIZE);
-	for (int tileY = tileY0; tileY <= tileY0 + PLAYER_HEIGHT_IN_TILES; tileY++)
+	// Move the player.
+	if (not CurrentSlideshow and not CurrentScript)
 	{
-		for (int tileX = tileX0; tileX <= tileX0 + PLAYER_WIDTH_IN_TILES; tileX++)
+		Player* player = &gameState.player;
+		Vector2 playerVelocity = 100.0f * inputVelocity;
+		player->position += playerVelocity * GetFrameTime();
+
+		// Resolve any collisions with tiles.
+		Rectangle playerHitbox = { player->position.x, player->position.y, PLAYER_HITBOX_SIZE.x, PLAYER_HITBOX_SIZE.y };
+		int tileX0 = (int)floorf(player->position.x / TILE_SIZE);
+		int tileY0 = (int)floorf(player->position.y / TILE_SIZE);
+		for (int tileY = tileY0; tileY <= tileY0 + PLAYER_HEIGHT_IN_TILES; tileY++)
 		{
-			// Loop over all tiles neighboring the player.
-			if (tileX >= 0 and tileX < ROOM_WIDTH_IN_TILES and tileY >= 0 and tileY < ROOM_HEIGHT_IN_TILES)
+			for (int tileX = tileX0; tileX <= tileX0 + PLAYER_WIDTH_IN_TILES; tileX++)
 			{
-				int tileIndex = tileY * gameState.level.grid.width + tileX;
-				GridTile tileID = gameState.level.grid.tiles[tileIndex];
-				uint8_t impassible = gameState.collision[tileID];
-				if (impassible)
+				// Loop over all tiles neighboring the player.
+				if (tileX >= 0 and tileX < ROOM_WIDTH_IN_TILES and tileY >= 0 and tileY < ROOM_HEIGHT_IN_TILES)
 				{
-					Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
-					ResolveCollisions(&playerHitbox, tileHitbox);
+					int tileIndex = tileY * gameState.level.grid.width + tileX;
+					GridTile tileID = gameState.level.grid.tiles[tileIndex];
+					uint8_t impassible = gameState.collision[tileID];
+					if (impassible)
+					{
+						Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
+						ResolveCollisions(&playerHitbox, tileHitbox);
+					}
 				}
 			}
 		}
+		player->position.x = playerHitbox.x;
+		player->position.y = playerHitbox.y;
 	}
-	player->position.x = playerHitbox.x;
-	player->position.y = playerHitbox.y;
 
 	if (IsKeyPressed(KEY_GRAVE))
 	{
