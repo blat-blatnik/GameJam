@@ -25,17 +25,8 @@ static uint32_t nextSelectedTextureIndex = 0;
 static uint32_t selectedLayer = 0;
 #endif
 
-static const Level levels[]
-{
-	{
-		.name = "test.level",
-	},
-};
-static uint32_t currentLevelIndex =0;
-static Level getCurrentLevel()
-{
-	return levels[currentLevelIndex];
-}
+char currentLevelName[128] = "test.level";
+
 
 RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
@@ -80,11 +71,11 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			const char* extension = GetFileExtension(filename);
 			if (not extension) filename = TextFormat("%s.level", filename);
 
-			if (loadLevel(filename, &gameState))
+			if (loadLevel(filename, &gameState.level))
 				TraceLog(LOG_INFO, "Loaded level '%s'", filename);
 			else
 				TraceLog(LOG_ERROR, "Level '%s' not found!", filename);
-			TextCopy(getCurrentLevel().name, filename);
+			TextCopy(currentLevelName, filename);
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'level' command.");
 	}
@@ -211,7 +202,7 @@ void GameLoop()
 	// Calculate mouse cursor position inside of the inner fixed window, from (0,0) to FIXED_SIZE.
 	MousePos = (GetMousePosition() - innerWindowOffset) / scaledSize * FIXED_SIZE;
 	MousePos = Vector2Clamp(MousePos, {0, 0}, FIXED_SIZE);
-
+	Level *currentLevel = &gameState.level;
 	BeginDrawing();
 	{
 		ClearBackground(BLACK);
@@ -222,13 +213,13 @@ void GameLoop()
 
 			{
 				// draw level and player
-				for (uint32_t layer = 0; layer < gameState.grid.layers; layer++)
+				for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
 				{
-					for (uint32_t y = 0; y < gameState.grid.height; y++)
+					for (uint32_t y = 0; y < currentLevel->grid.height; y++)
 					{
-						for (uint32_t x = 0; x < gameState.grid.width; x++)
+						for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 						{
-							uint32_t textureIndex = getGridTile(&gameState.grid, x, y, layer);
+							uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
 							DrawTextureRec(Tilemap, Rectangle{
 												(float)(textureIndex % (Tilemap.width/16))*16.f,
 												(float)(textureIndex  /(Tilemap.width/16))*16.f, 16, 16
@@ -356,7 +347,7 @@ void GameLoop()
 				for (uint32_t y = 0; y < lastY; y++)
 				{
 					for (uint32_t x = 0; x < lastX; x++){
-						setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f)+x,
+						setGridTile(&currentLevel->grid, (uint32_t)floorf(MousePos.x / 16.f)+x,
 								(uint32_t)floorf(MousePos.y / 16.f)+y, selectedLayer, (GridTile)(selectedTextureIndex+x +y*(Tilemap.width/16)));
 					}
 				}
@@ -364,7 +355,7 @@ void GameLoop()
 
 			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
 			{
-				setGridTile(&gameState.grid, (uint32_t)floorf(MousePos.x / 16.f),
+				setGridTile(&currentLevel->grid, (uint32_t)floorf(MousePos.x / 16.f),
 							(uint32_t)floorf(MousePos.y / 16.f), selectedLayer, 0);
 			}
 
@@ -483,11 +474,11 @@ void GameLoop()
 		{
 			if (IsKeyPressed(KEY_P))
 			{
-				saveLevel(getCurrentLevel().name, &gameState.grid);
+				saveLevel(currentLevelName, currentLevel);
 			}
 			if (IsKeyPressed(KEY_L))
 			{
-				loadLevel(getCurrentLevel().name, &gameState);
+				loadLevel(currentLevelName, &gameState.level);
 			}
 		}
 
@@ -497,15 +488,20 @@ void GameLoop()
 	}
 	EndDrawing();
 }
+static bool initalizeLevel(Level* level)
+{
+	level->grid = initializeGrid(480 / 16 + 1, 270 / 16 + 1, 2);
+	return true;
+}
 
 static bool initializeGameState(GameState* gameState)
 {
 	bool success = gameState != nullptr;
 	if (success)
 	{
-		if (!loadLevel(getCurrentLevel().name, gameState))
+		if (!loadLevel(currentLevelName,&gameState->level))
 		{
-			gameState->grid = initializeGrid(480 / 16 + 1, 270 / 16 + 1, 2);
+			initalizeLevel(&gameState->level);
 		}
 		if (gameState->collision==nullptr)
 		{
