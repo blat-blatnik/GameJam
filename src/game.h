@@ -1,16 +1,17 @@
 #pragma once
-#include <cstdint>
-
+#include "utils.h"
 
 typedef uint32_t GridTile;
 
-enum Facing
-{
-	Direction_Right = 0,
-	Direction_Up = 1,
-	Direction_Left = 2,
-	Direction_Down = 3,
-};
+#define PLAYER_SPEED 40.0f
+#define PLAYER_INVINCIBILITY_TIME 0.5f
+#define GHOST_SPEED 25.0f
+#define GHOST_ATTACK_WINDUP_TIME 0.40f
+#define GHOST_ATTACK_DAMAGE_TIME 0.50f
+#define GHOST_ATTACK_WINDDOWN_TIME 0.20f
+#define GHOST_ATTACK_COOLDOWN_TIME 0.50f
+#define GHOST_ATTACK_RADIUS 30.0f
+#define GHOST_ATTACK_DAMAGE 15
 
 struct Grid
 {
@@ -24,14 +25,23 @@ struct Grid
 struct Player
 {
 	Vector2 position;
-	Facing direction;
+	Facing facing;
 	float health = 100; // [0,100]
+	float invicibilityTime; // >0 after being hit, while >0 no damage can be taken.
 };
 struct Event
 {
 	uint32_t cellX;
 	uint32_t cellY;
 	char scriptName[128];
+};
+struct Ghost
+{
+	Vector2 position;
+	Facing facing;
+	float health = 3;
+	float attackTime; // >0 means ghost is in attacking state
+	float attackCooldownTime; // >0 means ghost can't attack yet
 };
 
 struct Level
@@ -47,6 +57,8 @@ struct GameState
 	Player player;
 	uint8_t* collision;
 	Level level;
+	int numGhosts;
+	Ghost ghosts[16];
 };
 
 static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)

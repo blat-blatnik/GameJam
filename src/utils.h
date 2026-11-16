@@ -3,6 +3,7 @@
 #include "raymath.h"
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <stdio.h>
 #ifdef __EMSCRIPTEN__
@@ -91,6 +92,30 @@ inline bool ResolveCollisions(Rectangle* a, Rectangle b)
 		return true;
 	}
 	else return false;
+}
+
+// Direction
+
+enum Facing
+{
+	Facing_Right = 0,
+	Facing_Up = 1,
+	Facing_Left = 2,
+	Facing_Down = 3,
+};
+
+inline Facing FacingFromVector(Vector2 v)
+{
+	if (fabsf(v.x) > fabsf(v.y))
+	{
+		if (v.x >= 0) return Facing_Right;
+		else return Facing_Left;
+	}
+	else
+	{
+		if (v.y >= 0) return Facing_Down;
+		else return Facing_Up;
+	}
 }
 
 // Interpolation

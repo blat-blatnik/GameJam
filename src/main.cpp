@@ -36,7 +36,10 @@ char currentLevelName[128] = "test.level";
 
 RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
-GameState gameState{}; // (oualid) idk how to pass variable to emscripting's loop :(
+GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :(
+	.numGhosts = 1,
+	.ghosts = { { .position = {200,200} } },
+};
 
 // Script Commands
 
@@ -108,7 +111,7 @@ bool IsDialogAdvanceButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = &IntroScript;
+Script* CurrentScript = nullptr; // &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -152,28 +155,17 @@ void GameLoop()
 	}
 	inputVelocity = Vector2Normalize(inputVelocity);
 
-	// Move the player.
+	// Update.
 	if (not CurrentSlideshow and not CurrentScript)
 	{
-		// Update the position
+		// Update player position.
 		Player* player = &gameState.player;
-		Vector2 playerVelocity = 100.0f * inputVelocity;
+		Vector2 playerVelocity = PLAYER_SPEED * inputVelocity;
 		player->position += playerVelocity * GetFrameTime();
 
 		// Update the facing direction.
 		if (playerVelocity.x != 0 or playerVelocity.y != 0)
-		{
-			if (fabsf(playerVelocity.x) > fabsf(playerVelocity.y))
-			{
-				if (playerVelocity.x > 0) player->direction = Direction_Right;
-				else player->direction = Direction_Left;
-			}
-			else
-			{
-				if (playerVelocity.y > 0) player->direction = Direction_Down;
-				else player->direction = Direction_Up;
-			}
-		}
+			player->facing = FacingFromVector(playerVelocity);
 
 		// Resolve any collisions with tiles.
 		Rectangle playerHitbox = { player->position.x, player->position.y + 26, TILE_SIZE, 6 };
@@ -200,10 +192,69 @@ void GameLoop()
 		player->position.x = playerHitbox.x;
 		player->position.y = playerHitbox.y - 26;
 
-		//@TODO Health drain for testing the health bar.
-		player->health -= 5 * GetFrameTime();
+		// Player is invincible for a few moments after being hit.
+		player->invicibilityTime -= GetFrameTime();
+		player->invicibilityTime = Max(player->invicibilityTime, 0);
+
+		// Update ghost.
+		for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
+		{
+			Ghost* ghost = &gameState.ghosts[ghostIndex];
+			
+			Vector2 delta = player->position - ghost->position;
+			float distance = Vector2Length(delta);
+			if (ghost->attackTime > 0)
+			{
+				ghost->attackTime += GetFrameTime();
+				ClipContext clip = { ghost->attackTime };
+				float windupT = ClipTime(&clip, GHOST_ATTACK_WINDUP_TIME);
+				float attackT = ClipTime(&clip, GHOST_ATTACK_DAMAGE_TIME);
+				float winddownT = ClipTime(&clip, GHOST_ATTACK_WINDDOWN_TIME);
+
+				if (attackT > 0 and winddownT <= 0)
+				{
+					Rectangle attackHitbox = { ghost->position.x, ghost->position.y, TILE_SIZE, 2 * TILE_SIZE };
+					attackHitbox = ExpandRectangle(attackHitbox, GHOST_ATTACK_RADIUS);
+					if (CheckCollisionRecs(playerHitbox, attackHitbox) and player->invicibilityTime <= 0)
+					{
+						player->invicibilityTime = Max(player->invicibilityTime, PLAYER_INVINCIBILITY_TIME);
+						player->health -= GHOST_ATTACK_DAMAGE;
+						player->health = Max(player->health, 0);
+					}
+				}
+				if (winddownT >= 1)
+				{
+					ghost->attackTime = 0;
+					ghost->attackCooldownTime = GHOST_ATTACK_COOLDOWN_TIME;
+				}
+			}
+			else
+			{
+				// Face towards player.
+				if (ghost->attackTime == 0)
+					ghost->facing = FacingFromVector(delta);
+
+				ghost->attackCooldownTime -= GetFrameTime();
+				ghost->attackCooldownTime = Max(ghost->attackCooldownTime, 0);
+
+				// Attack!
+				if (distance < 25 and ghost->attackCooldownTime == 0)
+					ghost->attackTime += GetFrameTime();
+				else
+				{
+					if (distance >= TILE_SIZE)
+					{
+						// Float towards the player.
+						Vector2 direction = Vector2Normalize(delta);
+						Vector2 velocity = direction * GHOST_SPEED;
+						ghost->position += velocity * GetFrameTime();
+					}
+				}
+			}
+		}
 	}
 
+	// Toggle console with ` key (next to 1).
 	if (IsKeyPressed(KEY_GRAVE))
 	{
 		if (mode != Mode_Console)
@@ -214,8 +265,7 @@ void GameLoop()
 		}
 		else mode = ConsoleBackupMode;
 	}
-
-	// Let you type anything into the console.
+	// The console swallows all other input keys.
 	if (mode != Mode_Console)
 	{
 		if (IsKeyPressed(KEY_ONE))
@@ -243,9 +293,7 @@ void GameLoop()
 	float maxScaleX = Max(windowWidth / FIXED_WIDTH, 1);
 	float maxScaleY = Max(windowHeight / FIXED_HEIGHT, 1);
 	float scale = Min(maxScaleX, maxScaleY);
-#if true // Force integer scaling.
-	scale = floorf(scale);
-#endif
+	scale = floorf(scale); // Force integer scaling.
 	float scaledWidth = FIXED_WIDTH * scale;
 	float scaledHeight = FIXED_HEIGHT * scale;
 	Vector2 scaledSize = {
@@ -290,20 +338,50 @@ void GameLoop()
 			// Draw player.
 			Player player = gameState.player;
 			Vector2 uv = {};
-			switch (player.direction)
+			switch (player.facing)
 			{
-				case Direction_Left: uv = { 0, 14 }; break;
-				case Direction_Right: uv = { 32, 14 }; break;
-				case Direction_Up: uv = { 16, 0 }; break;
-				case Direction_Down: uv = { 16, 32 }; break;
+				case Facing_Left: uv = { 0, 14 }; break;
+				case Facing_Right: uv = { 32, 14 }; break;
+				case Facing_Up: uv = { 16, 0 }; break;
+				case Facing_Down: uv = { 16, 32 }; break;
 			}
 			Rectangle rect = { player.position.x, player.position.y, 16, 32 };
-			DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, WHITE);
+			Color tint = WHITE;
+			if (player.invicibilityTime > 0)
+			{
+				// Flash red while damaged.
+				float t = TriangleWave(player.invicibilityTime * 12);
+				tint = ColorLerp(ColorBrightness(WHITE, -0.5f), ColorBrightness(RED, -0.5f), t);
+			}
+			DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, tint);
+
+			// Draw enemies.
+			for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
+			{
+				Ghost ghost = gameState.ghosts[ghostIndex];
+				DrawRectangleV(ghost.position, { TILE_SIZE, 2 * TILE_SIZE }, ColorAlpha(RED, 0.5f));
+				if (ghost.attackTime > 0)
+				{
+					ClipContext clip = { ghost.attackTime };
+					float windupT = ClipTime(&clip, GHOST_ATTACK_WINDUP_TIME);
+					float attackT = ClipTime(&clip, GHOST_ATTACK_DAMAGE_TIME);
+					float winddownT = ClipTime(&clip, GHOST_ATTACK_WINDDOWN_TIME);
+					
+					float alpha = 0;
+					if (winddownT > 0) alpha = 1 - Smoothstep(winddownT);
+					else alpha = Smoothstep(windupT);
+
+					Rectangle attackHitbox = { ghost.position.x, ghost.position.y, TILE_SIZE, 2 * TILE_SIZE };
+					attackHitbox = ExpandRectangle(attackHitbox, GHOST_ATTACK_RADIUS);
+					DrawRectangleRec(attackHitbox, ColorAlpha(RED, alpha));
+				}
+			}
 
 			// Draw healthbar.
 			float healtbarEnd = Remap(player.health, 0, 100, 0, 60);
 			DrawTexturePro(HealthbarSpritesheet, { 0, 0, 64, 8 }, { 2, 2, 64, 8 }, {}, 0, WHITE);
-			DrawTexturePro(HealthbarSpritesheet, { 2, 9, healtbarEnd, 4 }, { 4, 4, healtbarEnd, 4 }, {}, 0, WHITE);
+			Color healthbarTint = player.health < 25 ? Color{255,80,80,255} : WHITE;
+			DrawTexturePro(HealthbarSpritesheet, { 2, 9, healtbarEnd, 4 }, { 4, 4, healtbarEnd, 4 }, {}, 0, healthbarTint);
 			
 			// Update and render slideshow.
 			if (CurrentSlideshow)
