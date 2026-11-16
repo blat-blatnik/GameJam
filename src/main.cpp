@@ -98,7 +98,7 @@ int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
 
-bool IsDialogAdvanceButtonPressed()
+bool IsInteractButtonPressed()
 {
 	return
 		IsKeyPressed(KEY_ENTER) or
@@ -160,12 +160,15 @@ void GameLoop()
 	{
 		// Update player position.
 		Player* player = &gameState.player;
-		Vector2 playerVelocity = PLAYER_SPEED * inputVelocity;
-		player->position += playerVelocity * GetFrameTime();
+		if (player->attackTime <= 0)
+		{
+			Vector2 playerVelocity = PLAYER_SPEED * inputVelocity;
+			player->position += playerVelocity * GetFrameTime();
 
-		// Update the facing direction.
-		if (playerVelocity.x != 0 or playerVelocity.y != 0)
-			player->facing = FacingFromVector(playerVelocity);
+			// Update the facing direction.
+			if (playerVelocity.x != 0 or playerVelocity.y != 0)
+				player->facing = FacingFromVector(playerVelocity);
+		}
 
 		// Resolve any collisions with tiles.
 		Rectangle playerHitbox = { player->position.x, player->position.y + 26, TILE_SIZE, 6 };
@@ -195,6 +198,42 @@ void GameLoop()
 		// Player is invincible for a few moments after being hit.
 		player->invicibilityTime -= GetFrameTime();
 		player->invicibilityTime = Max(player->invicibilityTime, 0);
+
+		// Attack!
+		if ((IsInteractButtonPressed() and player->attackTime <= 0) or player->attackTime > 0)
+		{
+			if (player->attackTime <= 0) player->attackSequenceCounter++;
+
+			player->attackTime += GetFrameTime();
+			ClipContext clip = { player->attackTime };
+			float windupT = ClipTime(&clip, PLAYER_ATTACK_WINDUP_TIME);
+			float attackT = ClipTime(&clip, PLAYER_ATTACK_DAMAGE_TIME);
+			if (attackT > 0)
+			{
+				Rectangle attackHitbox = {};
+				switch (player->facing)
+				{
+					case Facing_Up: attackHitbox = { player->position.x - TILE_SIZE, player->position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+					case Facing_Down: attackHitbox = { player->position.x - TILE_SIZE, player->position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+					case Facing_Left: attackHitbox = { player->position.x - TILE_SIZE, player->position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+					case Facing_Right: attackHitbox = { player->position.x, player->position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+				}
+
+				for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
+				{
+					Ghost* ghost = &gameState.ghosts[ghostIndex];
+					Rectangle ghostHitbox = { ghost->position.x, ghost->position.y, TILE_SIZE, 2 * TILE_SIZE };
+					if (CheckCollisionRecs(attackHitbox, ghostHitbox) and ghost->lastAttackSequenceCounter != player->attackSequenceCounter)
+					{
+						ghost->health -= 1;
+						ghost->lastAttackSequenceCounter = player->attackSequenceCounter;
+						if (ghost->health <= 0)
+							gameState.ghosts[ghostIndex--] = gameState.ghosts[--gameState.numGhosts]; // Swap remove.
+					}
+				}
+			}
+			if (attackT >= 1) player->attackTime = 0;
+		}
 
 		// Update ghost.
 		for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
@@ -355,6 +394,26 @@ void GameLoop()
 			}
 			DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, tint);
 
+			// Draw attack.
+			if (player.attackTime)
+			{
+				ClipContext clip = { player.attackTime };
+				float windupT = ClipTime(&clip, PLAYER_ATTACK_WINDUP_TIME);
+				float attackT = ClipTime(&clip, PLAYER_ATTACK_DAMAGE_TIME);
+				if (attackT > 0)
+				{
+					Rectangle attackHitbox = {};
+					switch (player.facing)
+					{
+						case Facing_Up: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+						case Facing_Down: attackHitbox = { player.position.x - TILE_SIZE, player.position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+						case Facing_Left: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+						case Facing_Right: attackHitbox = { player.position.x, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+					}
+					DrawRectangleRec(attackHitbox, ColorAlpha(RED, 0.5f));
+				}
+			}
+
 			// Draw enemies.
 			for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
 			{
@@ -423,7 +482,7 @@ void GameLoop()
 
 				if (CurrentSlideAlphaIncrement > 0)
 				{
-					bool advance = IsDialogAdvanceButtonPressed();
+					bool advance = IsInteractButtonPressed();
 					if (CurrentSlideAlpha >= 1 and advance)
 						CurrentSlideAlphaIncrement = -CurrentSlideAlphaIncrement;
 				}
@@ -464,7 +523,7 @@ void GameLoop()
 				DrawTextEx(Arial8Font, speaker, {159, 205}, 13, 0, SPEAKER_COLOR);
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 
-				bool advance = IsDialogAdvanceButtonPressed();
+				bool advance = IsInteractButtonPressed();
 				if (advance)
 				{
 					if (doneWithScriptParagraph)

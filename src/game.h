@@ -5,6 +5,8 @@ typedef uint32_t GridTile;
 
 #define PLAYER_SPEED 40.0f
 #define PLAYER_INVINCIBILITY_TIME 0.5f
+#define PLAYER_ATTACK_WINDUP_TIME 0.10f
+#define PLAYER_ATTACK_DAMAGE_TIME 0.40f
 #define GHOST_SPEED 25.0f
 #define GHOST_ATTACK_WINDUP_TIME 0.40f
 #define GHOST_ATTACK_DAMAGE_TIME 0.50f
@@ -28,6 +30,8 @@ struct Player
 	Facing facing;
 	float health = 100; // [0,100]
 	float invicibilityTime; // >0 after being hit, while >0 no damage can be taken.
+	float attackTime; // >0 means player is in attacking state
+	unsigned attackSequenceCounter = 1; // used so enemies don't get damaged twice by the same attack
 };
 struct Event
 {
@@ -42,6 +46,7 @@ struct Ghost
 	float health = 3;
 	float attackTime; // >0 means ghost is in attacking state
 	float attackCooldownTime; // >0 means ghost can't attack yet
+	unsigned lastAttackSequenceCounter;
 };
 
 struct Level
