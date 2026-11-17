@@ -56,6 +56,7 @@ Music GetMusic(const char* filepath)
 	{
 		const char* artPath = TextFormat("art/%s", filepath);
 		*music = LoadMusicStream(artPath);
+		music->looping = true;
 	}
 	return *music;
 }

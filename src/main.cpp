@@ -41,6 +41,39 @@ GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :
 	.ghosts = { { .position = {200,200} } },
 };
 
+// Slideshow stuff
+
+Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
+int CurrentSlideIndex = 0;
+float CurrentSlideAlpha;
+float CurrentSlideAlphaIncrement = +1.5f;
+
+bool IsInteractButtonPressed()
+{
+	return
+		IsKeyPressed(KEY_ENTER) or
+		IsKeyPressed(KEY_SPACE) or
+		IsKeyPressed(KEY_E) or
+		IsKeyPressed(KEY_F) or
+		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
+		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+}
+
+// Dialog script stuff
+
+Script* CurrentScript = nullptr; // &IntroScript;
+int ScriptParagraphIndex ;
+float ScriptParagraphTime;
+
+// Music
+
+#define MUSIC_FADE_TIME 1.0f
+
+Music CurrentMusic;
+Music NextQueuedMusic;
+float MusicFade;
+float MusicMaxVolume;
+
 // Script Commands
 
 char ConsoleText[512];
@@ -72,6 +105,21 @@ void ExecuteScriptCommand(const char* commandAndParams)
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'sound' command.");
 	}
+	else if (TextIsEqual(command, "music"))
+	{
+		if (numParameters >= 1)
+		{
+			const char* filepath = split[1];
+			const char* volumeString = numParameters >= 2 ? split[2] : "1";
+			const char* pitchString = numParameters >= 3 ? split[3] : "1";
+
+			MusicMaxVolume = strtof(volumeString, nullptr);
+			float pitch = strtof(pitchString, nullptr);
+			NextQueuedMusic = GetMusic(filepath);
+			SetMusicPitch(NextQueuedMusic, pitch);
+		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'music' command.");
+	}
 	else if (TextIsEqual(command, "level"))
 	{
 		if (numParameters >= 1)
@@ -91,36 +139,36 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
 
-// Slideshow stuff
-
-Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
-int CurrentSlideIndex = 0;
-float CurrentSlideAlpha;
-float CurrentSlideAlphaIncrement = +1.5f;
-
-bool IsInteractButtonPressed()
-{
-	return
-		IsKeyPressed(KEY_ENTER) or
-		IsKeyPressed(KEY_SPACE) or
-		IsKeyPressed(KEY_E) or
-		IsKeyPressed(KEY_F) or
-		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
-		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-}
-
-// Dialog script stuff
-
-Script* CurrentScript = nullptr; // &IntroScript;
-int ScriptParagraphIndex ;
-float ScriptParagraphTime;
-
 // Game
 
 void GameLoop()
 {
 	if (IsKeyPressed(KEY_ENTER) && IsKeyDown(KEY_LEFT_ALT))
 		ToggleFullscreen_FixedForWeb();
+
+	// Update music.
+	if (NextQueuedMusic.stream.buffer != nullptr)
+	{
+		MusicFade -= GetFrameTime();
+		if (MusicFade <= 0)
+		{
+			MusicFade = 0;
+			CurrentMusic = NextQueuedMusic;
+			NextQueuedMusic = {};
+			PlayMusicStream(CurrentMusic);
+		}
+	}
+	else if (CurrentMusic.stream.buffer != nullptr)
+	{
+		MusicFade += GetFrameTime();
+		MusicFade = Min(MusicFade, MUSIC_FADE_TIME);
+	}
+	if (CurrentMusic.stream.buffer != nullptr)
+	{
+		float volume = Smoothstep(MusicFade);
+		SetMusicVolume(CurrentMusic, volume);
+		UpdateMusicStream(CurrentMusic);
+	}
 
 	// Calculate input velocity.
 	Vector2 inputVelocity{};
@@ -174,7 +222,7 @@ void GameLoop()
 		}
 
 		// Resolve any collisions with tiles.
-		Rectangle playerHitbox = { player->position.x, player->position.y + 26, TILE_SIZE, 6 };
+		Rectangle playerFeetHitbox = { player->position.x, player->position.y + 26, TILE_SIZE, 6 };
 		int tileX0 = (int)floorf(player->position.x / TILE_SIZE);
 		int tileY0 = (int)floorf(player->position.y / TILE_SIZE);
 		for (int tileY = tileY0; tileY <= tileY0 + PLAYER_HEIGHT_IN_TILES; tileY++)
@@ -192,14 +240,14 @@ void GameLoop()
 						if (impassible)
 						{
 							Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
-							ResolveCollisions(&playerHitbox, tileHitbox);
+							ResolveCollisions(&playerFeetHitbox, tileHitbox);
 						}
 					}
 				}
 			}
 		}
-		player->position.x = playerHitbox.x;
-		player->position.y = playerHitbox.y - 26;
+		player->position.x = playerFeetHitbox.x;
+		player->position.y = playerFeetHitbox.y - 26;
 
 		// Player is invincible for a few moments after being hit.
 		player->invicibilityTime -= GetFrameTime();
@@ -272,6 +320,7 @@ void GameLoop()
 		}
 
 		// Update ghost.
+		Rectangle playerHitbox = { player->position.x, player->position.y, TILE_SIZE, 2 * TILE_SIZE };
 		for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
 		{
 			Ghost* ghost = &gameState.ghosts[ghostIndex];
