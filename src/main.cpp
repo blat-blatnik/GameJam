@@ -184,13 +184,16 @@ void GameLoop()
 				// Loop over all tiles neighboring the player.
 				if (tileX >= 0 and tileX < ROOM_WIDTH_IN_TILES and tileY >= 0 and tileY < ROOM_HEIGHT_IN_TILES)
 				{
-					int tileIndex = tileY * gameState.level.grid.width + tileX;
-					GridTile tileID = gameState.level.grid.tiles[tileIndex];
-					uint8_t impassible = gameState.collision[tileID];
-					if (impassible)
+					for (int layer = 0; layer < 2; layer++)
 					{
-						Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
-						ResolveCollisions(&playerHitbox, tileHitbox);
+						int tileIndex = layer * (gameState.level.grid.width * gameState.level.grid.height) + tileY * (gameState.level.grid.width) + tileX;
+						GridTile tileID = gameState.level.grid.tiles[tileIndex];
+						uint8_t impassible = gameState.collision[tileID];
+						if (impassible)
+						{
+							Rectangle tileHitbox = { (float)(tileX * TILE_SIZE), (float)(tileY * TILE_SIZE), TILE_SIZE, TILE_SIZE };
+							ResolveCollisions(&playerHitbox, tileHitbox);
+						}
 					}
 				}
 			}
