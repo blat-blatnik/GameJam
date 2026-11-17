@@ -67,6 +67,7 @@ struct Level
 	Grid grid;
 	uint32_t nextUnused;
 	Event events[32];
+	Vector2 ghostPositions[16];
 };
 
 struct GameState
@@ -186,6 +187,17 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 				level->grid.tiles = (GridTile*)(data + sizeof(Level));
 				gameState->level = *level;
 				gameState->player.position = gameState->level.startingPosition;
+				for (uint32_t i = 0; i < arrLength(Level::ghostPositions);i++)
+				{
+					gameState->numGhosts =0;
+				if (Vector2LengthSqr(level->ghostPositions[i])!=0.f)
+				{
+					gameState->ghosts[i]=Ghost{};
+					gameState->ghosts[i].position = level->ghostPositions[i];
+					gameState->numGhosts++;
+				}
+					
+				}
 			}
 			else
 			{
