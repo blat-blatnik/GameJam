@@ -203,7 +203,7 @@ void GameLoop()
 		player->invicibilityTime = Max(player->invicibilityTime, 0);
 
 		// Attack!
-		if ((IsInteractButtonPressed() and player->attackTime <= 0) or player->attackTime > 0)
+		if ((IsInteractButtonPressed() and player->attackTime <= 0 and gameState.numGhosts) or player->attackTime > 0)
 		{
 			if (player->attackTime <= 0) player->attackSequenceCounter++;
 
@@ -236,6 +236,36 @@ void GameLoop()
 				}
 			}
 			if (attackT >= 1) player->attackTime = 0;
+		}
+		else if (IsInteractButtonPressed()) // Interact!
+		{
+			Rectangle hitbox = {};
+			switch (player->facing)
+			{
+				case Facing_Up: hitbox = { player->position.x, player->position.y - TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE }; break;
+				case Facing_Down: hitbox = { player->position.x, player->position.y + TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE }; break;
+				case Facing_Left: hitbox = { player->position.x - TILE_SIZE, player->position.y, TILE_SIZE, 2 * TILE_SIZE }; break;
+				case Facing_Right: hitbox = { player->position.x + TILE_SIZE, player->position.y, 2 * TILE_SIZE, 2 * TILE_SIZE }; break;
+			}
+			int minTileX = (int)floorf(hitbox.x / TILE_SIZE);
+			int minTileY = (int)floorf(hitbox.y / TILE_SIZE);
+			int maxTileX = (int)floorf((hitbox.x + hitbox.width) / TILE_SIZE);
+			int maxTileY = (int)floorf((hitbox.y + hitbox.height) / TILE_SIZE);
+			for (int tileY = minTileY; tileY <= maxTileY; tileY++)
+			{
+				for (int tileX = minTileX; tileX <= maxTileX; tileX++)
+				{
+					for (int i = 0; i < arrLength(gameState.level.events); i++)
+					{
+						Event* event = &gameState.level.events[i];
+						if (event->cellX == tileX and event->cellY == tileY and event->scriptName[0] != '\0')
+						{
+							ScriptParagraphIndex = 0;
+							CurrentScript = GetScript(event->scriptName);
+						}
+					}
+				}
+			}
 		}
 
 		// Update ghost.
@@ -510,6 +540,8 @@ void GameLoop()
 			}
 			else if (CurrentScript) // Update and render script.
 			{
+				ScriptParagraphIndex = ClampInt(ScriptParagraphIndex, 0, CurrentScript->paragraphs.count);
+
 				Paragraph paragraph = CurrentScript->paragraphs[ScriptParagraphIndex];
 				const char* speaker = paragraph.speaker;
 
@@ -540,7 +572,10 @@ void GameLoop()
 						ScriptParagraphTime = 0;
 						CurrentScript->commandIndex = 0; // Such a mess :(
 						if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
+						{
+							ScriptParagraphIndex = 0;
 							CurrentScript = nullptr; // Done with the script!
+						}
 					}
 					else ScriptParagraphTime = 9999; // Enough to go over everything.
 				}

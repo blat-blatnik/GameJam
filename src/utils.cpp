@@ -48,7 +48,7 @@ Sound GetSound(const char* filepath)
 	}
 	return *sound;
 }
-Script GetScript(const char* filepath)
+Script* GetScript(const char* filepath)
 {
 	Script* script = &ScriptTable[filepath];
 	if (script->text == nullptr)
@@ -56,7 +56,7 @@ Script GetScript(const char* filepath)
 		const char* artPath = TextFormat("art/%s", filepath);
 		*script = LoadScript(artPath, AsepriteFont, AsepriteFont, AsepriteFont, AsepriteFont);
 	}
-	return *script;
+	return script;
 }
 Slideshow GetSlideshow(const char* filepath)
 {

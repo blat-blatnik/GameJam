@@ -72,7 +72,7 @@ inline void LoadAllArt()
 	X_FONTS(LoadFont);
 	#undef LoadFont
 
-	#define LoadScript(name, filepath) name = GetScript(filepath);
+	#define LoadScript(name, filepath) name = *GetScript(filepath);
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 
