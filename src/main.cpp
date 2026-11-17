@@ -146,10 +146,44 @@ void ExecuteScriptCommand(const char* commandAndParams)
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'value' for 'sethealth' command.");
 	}
+	else if (TextIsEqual(command, "setprogress"))
+	{
+		if (numParameters >= 1)
+		{
+			int progress = (int)strtol(split[1], nullptr, 0);
+			progress = ClampInt(progress, 0, GameProgress_EnumCount - 1);
+			gameState.progress = (GameProgress)progress;
+		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'value' for 'setprogress' command.");
+	}
+	else if (TextIsEqual(command, "ifprogress"))
+	{
+		if (numParameters >= 2)
+		{
+			GameProgress progress = (GameProgress)ClampInt((int)strtol(split[1], nullptr, 0), 0, GameProgress_EnumCount - 1);
+			const char* gotoScriptFilename = split[2];
+			if (gameState.progress >= progress)
+			{
+				CurrentScript->commandIndex = 0;
+				CurrentScript = GetScript(gotoScriptFilename);
+				CurrentScript->commandIndex = 0;
+				ScriptParagraphIndex = 0;
+				ScriptParagraphTime = 0;
+			}
+		}
+		else
+		{
+			if (numParameters >= 1) TraceLog(LOG_ERROR, "Missing parameter 'goto_script_filename' for 'ifprogress' command.");
+			else TraceLog(LOG_ERROR, "Missing parameter 'compare_value' for 'ifprogress' command.");
+		}
+	}
 	else if (TextIsEqual(command, "end"))
 	{
-		CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
-		CurrentScript = nullptr;
+		if (CurrentScript)
+		{
+			CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
+			CurrentScript = nullptr;
+		}
 		ScriptParagraphIndex = 0;
 		ScriptParagraphTime = 0;
 	}

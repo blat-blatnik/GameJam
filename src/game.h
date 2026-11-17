@@ -25,6 +25,7 @@ enum GameProgress
 	GameProgress_GotTuna    = 5,
 	GameProgress_GoSleep    = 6,
 	GameProgress_SecondDay  = 7,
+	GameProgress_EnumCount
 };
 
 struct Grid
@@ -77,6 +78,7 @@ struct GameState
 	Level level;
 	int numGhosts;
 	Ghost ghosts[16];
+	GameProgress progress = GameProgress_JustWokeUp;
 };
 
 static Grid initializeGrid(uint32_t width, uint32_t height, uint32_t layers)

@@ -1,0 +1,2 @@
+{ifprogress 1 DEBUG-heal.script}
+You don't get to heal because you are not hurt!
