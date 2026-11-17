@@ -384,14 +384,11 @@ void GameLoop()
 			}
 		}
 
-		// Update ghost.
+		// Update ghosts.
 		Rectangle playerHitbox = { player->position.x, player->position.y, TILE_SIZE, 2 * TILE_SIZE };
 		for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
 		{
 			Ghost* ghost = &gameState.ghosts[ghostIndex];
-			
-			Vector2 delta = player->position - ghost->position;
-			float distance = Vector2Length(delta);
 			if (ghost->attackTime > 0)
 			{
 				ghost->attackTime += GetFrameTime();
@@ -419,14 +416,31 @@ void GameLoop()
 			}
 			else
 			{
-				// Face towards player.
-				if (ghost->attackTime == 0)
-					ghost->facing = FacingFromVector(delta);
-
 				ghost->attackCooldownTime -= GetFrameTime();
 				ghost->attackCooldownTime = Max(ghost->attackCooldownTime, 0);
 
+				// Get repelled by other ghosts.
+				Vector2 repelForce = {};
+				for (int otherIndex = 0; otherIndex < gameState.numGhosts; otherIndex++)
+				{
+					if (otherIndex != ghostIndex)
+					{
+						Ghost* otherGhost = &gameState.ghosts[otherIndex];
+						Vector2 awayFromOtherGhost = ghost->position - otherGhost->position;
+						float distance = Vector2Length(awayFromOtherGhost);
+						float ramp = 1 - Clamp(distance / (TILE_SIZE * 1.5f), 0, 1);
+						repelForce += Vector2Normalize(awayFromOtherGhost) * ramp * 100;
+					}
+				}
+				ghost->position += repelForce * GetFrameTime();
+
+				// Face towards player.
+				Vector2 delta = player->position - ghost->position;
+				if (ghost->attackTime == 0)
+					ghost->facing = FacingFromVector(delta);
+
 				// Attack!
+				float distance = Vector2Length(delta);
 				if (distance < 25 and ghost->attackCooldownTime == 0)
 					ghost->attackTime += GetFrameTime();
 				else
