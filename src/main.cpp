@@ -223,7 +223,7 @@ void GameLoop()
 	}
 
 	// Update.
-	if (not CurrentSlideshow and not CurrentScript)
+	if (not CurrentSlideshow and not CurrentScript and mode == Mode_Normal)
 	{
 		// Update player position.
 		Player* player = &gameState.player;
