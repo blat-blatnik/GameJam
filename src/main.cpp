@@ -136,6 +136,15 @@ void ExecuteScriptCommand(const char* commandAndParams)
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'level' command.");
 	}
+	else if (TextIsEqual(command, "sethealth"))
+	{
+		if (numParameters >= 1)
+		{
+			float health = strtof(split[1], nullptr);
+			gameState.player.health = Clamp(health, 0, 100);
+		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'value' for 'sethealth' command.");
+	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
 
