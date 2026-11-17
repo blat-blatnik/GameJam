@@ -15,6 +15,18 @@ typedef uint32_t GridTile;
 #define GHOST_ATTACK_RADIUS 30.0f
 #define GHOST_ATTACK_DAMAGE 15
 
+enum GameProgress
+{
+	GameProgress_JustWokeUp = 0,
+	GameProgress_GotCat     = 1,
+	GameProgress_GetTowel   = 2,
+	GameProgress_GotTowel   = 3,
+	GameProgress_GetTuna    = 4,
+	GameProgress_GotTuna    = 5,
+	GameProgress_GoSleep    = 6,
+	GameProgress_SecondDay  = 7,
+};
+
 struct Grid
 {
 	uint32_t width;

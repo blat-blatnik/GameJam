@@ -25,6 +25,7 @@ template<class T, int Capacity> struct AssetTable
 
 AssetTable<Texture, 4096> TextureTable;
 AssetTable<Sound, 1024> SoundTable;
+AssetTable<Music, 16> MusicTable;
 AssetTable<Script, 256> ScriptTable;
 AssetTable<Slideshow, 64> SlideshowTable;
 
@@ -47,6 +48,16 @@ Sound GetSound(const char* filepath)
 		*sound = LoadSound(artPath);
 	}
 	return *sound;
+}
+Music GetMusic(const char* filepath)
+{
+	Music* music = &MusicTable[filepath];
+	if (music->stream.buffer == nullptr)
+	{
+		const char* artPath = TextFormat("art/%s", filepath);
+		*music = LoadMusicStream(artPath);
+	}
+	return *music;
 }
 Script* GetScript(const char* filepath)
 {

@@ -70,7 +70,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			SetSoundPitch(sound, pitch);
 			PlaySound(sound);
 		}
-		else TraceLog(LOG_ERROR, "Missing parameter 'sound_filename' for 'sound' command.");
+		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'sound' command.");
 	}
 	else if (TextIsEqual(command, "level"))
 	{
@@ -86,7 +86,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 				TraceLog(LOG_ERROR, "Level '%s' not found!", filename);
 			TextCopy(currentLevelName, filename);
 		}
-		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'level' command.");
+		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'level' command.");
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }

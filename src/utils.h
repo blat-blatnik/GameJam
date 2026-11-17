@@ -414,6 +414,7 @@ const char* GetScriptExpression(Script script, int paragratphIndex, float time);
 
 Texture GetTexture(const char* filepath);
 Sound GetSound(const char* filepath);
+Music GetMusic(const char* filepath);
 Script* GetScript(const char* filepath);
 Slideshow GetSlideshow(const char* filepath);
 
