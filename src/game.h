@@ -178,7 +178,7 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 	{
 		int fileSize = 0;
 		uint8_t* data = LoadFileData(filePath, &fileSize);
-		if (fileSize >= sizeof(Grid))
+		if (fileSize >= sizeof(Level))
 		{
 			Level *level = (Level*) data;
 			if (fileSize == sizeof(Level) + level->grid.width * level->grid.height * level->grid.layers *
@@ -187,9 +187,9 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 				level->grid.tiles = (GridTile*)(data + sizeof(Level));
 				gameState->level = *level;
 				gameState->player.position = gameState->level.startingPosition;
+					gameState->numGhosts =0;
 				for (uint32_t i = 0; i < arrLength(Level::ghostPositions);i++)
 				{
-					gameState->numGhosts =0;
 				if (Vector2LengthSqr(level->ghostPositions[i])!=0.f)
 				{
 					gameState->ghosts[i]=Ghost{};

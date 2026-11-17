@@ -22,6 +22,7 @@ enum Mode :uint32_t
 	Mode_Paint,
 	Mode_Script,
 	Mode_Console,
+	Mode_GhostEdit,
 };
 
 static Mode mode = Mode_Normal;
@@ -421,7 +422,7 @@ void GameLoop()
 	}
 	// The console swallows all other input keys.
 	Mode prevMode = mode;
-	if (mode != Mode_Console)
+	if (mode != Mode_Console && IsKeyDown(KEY_LEFT_CONTROL))
 	{
 		if (IsKeyPressed(KEY_ONE))
 		{
@@ -438,6 +439,10 @@ void GameLoop()
 		if (IsKeyPressed(KEY_FOUR))
 		{
 			mode = Mode_Script;
+		}
+		if (IsKeyPressed(KEY_FIVE))
+		{
+			mode = Mode_GhostEdit;
 		}
 	}
 	bool modeWasSwitchedThisFrame = mode != prevMode;
@@ -499,10 +504,10 @@ void GameLoop()
 			Vector2 uv = {};
 			switch (player.facing)
 			{
-				case Facing_Left: uv = { 0, 14 }; break;
-				case Facing_Right: uv = { 32, 14 }; break;
-				case Facing_Up: uv = { 16, 0 }; break;
-				case Facing_Down: uv = { 16, 32 }; break;
+			case Facing_Left: uv = { 0, 14 }; break;
+			case Facing_Right: uv = { 32, 14 }; break;
+			case Facing_Up: uv = { 16, 0 }; break;
+			case Facing_Down: uv = { 16, 32 }; break;
 			}
 			Rectangle rect = { player.position.x, player.position.y, 16, 32 };
 			Color tint = WHITE;
@@ -525,10 +530,10 @@ void GameLoop()
 					Rectangle attackHitbox = {};
 					switch (player.facing)
 					{
-						case Facing_Up: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-						case Facing_Down: attackHitbox = { player.position.x - TILE_SIZE, player.position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-						case Facing_Left: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
-						case Facing_Right: attackHitbox = { player.position.x, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+					case Facing_Up: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+					case Facing_Down: attackHitbox = { player.position.x - TILE_SIZE, player.position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
+					case Facing_Left: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+					case Facing_Right: attackHitbox = { player.position.x, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
 					}
 					DrawRectangleRec(attackHitbox, ColorAlpha(RED, 0.5f));
 				}
@@ -855,6 +860,52 @@ void GameLoop()
 				}
 			}
 			
+		}else if (mode == Mode_GhostEdit)
+		{
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+			{
+				for (uint32_t ghostIndex = 0; ghostIndex < arrLength(Level::events); ghostIndex++)
+				{
+					
+				Vector2 pos = gameState.level.ghostPositions[ghostIndex];
+					if (Vector2LengthSqr(pos)==0)
+					{
+						gameState.level.ghostPositions[ghostIndex]=  MousePos;
+						break;
+					}
+				}
+			
+			}
+			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+			{
+				for (uint32_t ghostIndex = 0; ghostIndex < arrLength(Level::events); ghostIndex++)
+				{
+					
+					Vector2 pos = gameState.level.ghostPositions[ghostIndex];
+					if (Vector2DistanceSqr(pos, MousePos)<= 24.f*24.f)
+					{
+						gameState.level.ghostPositions[ghostIndex]=  {};
+						break;
+					}
+				}
+				
+			
+			}
+			
+			for (uint32_t ghostIndex=0; ghostIndex<arrLength(Level::ghostPositions); ghostIndex++)
+			{
+				Vector2 pos = gameState.level.ghostPositions[ghostIndex] ;
+				if (Vector2LengthSqr(pos)!=0.f)
+				{
+					//pos += innerWindowOffset;
+					
+					//y =(x+ innerWindowOffset) / scaledSize * FIXED_SIZE;
+					 // y*scaledSize/ fixed size - innerWindowOffset;
+					pos= pos *scaledSize/FIXED_SIZE +innerWindowOffset;
+					DrawCircleLines((int32_t)pos.x,(int32_t)pos.y , 24, RED);
+				}
+			}
+
 		}
 
 		if (mode != Mode_Console)
@@ -896,6 +947,9 @@ void GameLoop()
 				break;
 			case Mode_Paint:
 				GuiDrawText("Mode Paint",{32,0,128,64},0,RED);
+				break;
+			case Mode_GhostEdit:
+				GuiDrawText("Mode Ghost edit",{32,0,128,64},0,RED);
 				break;
 			default: ;
 			}
