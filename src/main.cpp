@@ -145,6 +145,13 @@ void ExecuteScriptCommand(const char* commandAndParams)
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'value' for 'sethealth' command.");
 	}
+	else if (TextIsEqual(command, "end"))
+	{
+		CurrentScript->commandIndex = 0;
+		CurrentScript = nullptr;
+		ScriptParagraphIndex = 0;
+		ScriptParagraphTime = 0;
+	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }
 
@@ -623,22 +630,24 @@ void GameLoop()
 				DrawTextEx(Arial8Font, speaker, {159 + 1, 205 + 1}, 13, 0, ColorLerp(SPEAKER_COLOR, BLACK, 0.8f));
 				DrawTextEx(Arial8Font, speaker, {159, 205}, 13, 0, SPEAKER_COLOR);
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
-
-				bool advance = IsInteractButtonPressed();
-				if (advance)
+				if (CurrentScript) // Check again because "{end}" command can set CurrentScript to null.
 				{
-					if (doneWithScriptParagraph)
+					bool advance = IsInteractButtonPressed();
+					if (advance)
 					{
-						ScriptParagraphIndex++;
-						ScriptParagraphTime = 0;
-						CurrentScript->commandIndex = 0; // Such a mess :(
-						if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
+						if (doneWithScriptParagraph)
 						{
-							ScriptParagraphIndex = 0;
-							CurrentScript = nullptr; // Done with the script!
+							ScriptParagraphIndex++;
+							ScriptParagraphTime = 0;
+							CurrentScript->commandIndex = 0; // Such a mess :(
+							if (ScriptParagraphIndex >= CurrentScript->paragraphs.count)
+							{
+								ScriptParagraphIndex = 0;
+								CurrentScript = nullptr; // Done with the script!
+							}
 						}
+						else ScriptParagraphTime = 9999; // Enough to go over everything.
 					}
-					else ScriptParagraphTime = 9999; // Enough to go over everything.
 				}
 			}
 		}

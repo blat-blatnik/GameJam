@@ -1,21 +1,28 @@
 [Narrator]
 {music 1-piano.ogg}You are now listening to "1-piano.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 2-jubilant.ogg}You are now listening to "2-jubilant.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 3-darkncozy.ogg}You are now listening to "3-darkncozy.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 4-toybox.ogg}You are now listening to "4-toybox.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 5-tension.ogg}You are now listening to "5-tension.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 6-goodmorning.ogg}You are now listening to "6-goodmorning.ogg".
-The melody has healed your soul.{sethealth 100}
+...
+The melody heals your soul.{sethealth 100}
 
 {music 0-silence.ogg}You are now listening to "0-silence.ogg".
+...
 The silence hurts!{sethealth 10}
