@@ -435,3 +435,5 @@ inline void ToggleFullscreen_FixedForWeb()
 	ToggleBorderlessWindowed();
 	#endif
 }
+
+#define arrLength(X) (sizeof(X) / sizeof((X)[0]))

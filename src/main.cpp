@@ -128,11 +128,11 @@ void GameLoop()
 	{
 		inputVelocity.x = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
 		inputVelocity.y = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
-		if (inputVelocity.x > -0.02f && inputVelocity.x < 0.02f)
+		if (inputVelocity.x > -0.25f && inputVelocity.x < 0.25f)
 		{
 			inputVelocity.x = 0;
 		}
-		if (inputVelocity.y > -0.02f && inputVelocity.y < 0.02f)
+		if (inputVelocity.y > -0.25f && inputVelocity.y < 0.25f)
 		{
 			inputVelocity.y = 0;
 		}
@@ -153,7 +153,10 @@ void GameLoop()
 	{
 		inputVelocity.y += 1.0f;
 	}
-	inputVelocity = Vector2Normalize(inputVelocity);
+	if (Vector2LengthSqr(inputVelocity)>1.f)
+	{
+		inputVelocity = Vector2Normalize(inputVelocity);
+	}
 
 	// Update.
 	if (not CurrentSlideshow and not CurrentScript)
@@ -366,10 +369,13 @@ void GameLoop()
 					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 					{
 						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
-						DrawTextureRec(Tilemap, Rectangle{
-							(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
-							(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
-							}, Vector2{ x * 16.f, y * 16.f }, WHITE);
+						if (textureIndex!=0)
+						{
+							DrawTextureRec(Tilemap, Rectangle{
+								(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
+								(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
+								}, Vector2{ x * 16.f, y * 16.f }, WHITE);
+						}
 					}
 				}
 			}
@@ -684,23 +690,59 @@ void GameLoop()
 		}else if (mode==Mode_Script)
 		{
 			static Vector2 selectedCell{};
-			static char tempScript[128]{};
-			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			{
-				selectedCell = MousePos;
-				memset(tempScript, 0, sizeof tempScript);
+				selectedCell = MousePos / 16.f;
+				selectedCell.x=floorf(selectedCell.x);
+				selectedCell.y=floorf(selectedCell.y);
 			}
-			GuiTextBox({8.f,8.f,128.f,64.f},tempScript,48,true);
+			
+			char* script = nullptr;
+			uint32_t selectedEvent {};
+			for (uint32_t scriptIndex=0 ;scriptIndex< arrLength(Level::events);scriptIndex++)
+			{
+				if (script ==nullptr && gameState.level.events[scriptIndex].scriptName[0]==0)
+				{
+					script = gameState.level.events[scriptIndex].scriptName;
+					selectedEvent = scriptIndex;
+				}
+				if (gameState.level.events[scriptIndex].cellX== (uint32_t)selectedCell.x && gameState.level.events[scriptIndex].cellY== (uint32_t)selectedCell.y)
+				{
+					script = gameState.level.events[scriptIndex].scriptName;
+					selectedEvent = scriptIndex;
+					break;
+				}
+			}
+			gameState.level.events[selectedEvent].cellX =(uint32_t)selectedCell.x;
+			gameState.level.events[selectedEvent].cellY =(uint32_t)selectedCell.y;
+			
+			GuiDrawText(TextFormat("cell:%i,%i",(uint32_t)selectedCell.x,(uint32_t)selectedCell.y),{8,8,128,24},TEXT_ALIGN_RIGHT,RAYWHITE);
+			if (GuiTextBox({128+4.f,8.f,128.f,24.f},script,128,true))
+			{	
+				
+			}
+			{
+				Vector2 pos = selectedCell *16.f * scaledSize / FIXED_SIZE +innerWindowOffset;
+				DrawRectangleLines((int32_t)pos.x,(int32_t)pos.y, (int32_t)(int32_t)(scaledSize.x/ FIXED_SIZE.x *16.f) ,(int32_t)(scaledSize.y/FIXED_SIZE.y *16.f) , BLUE);
+			}
+			for (uint32_t eventIndex = 0; eventIndex < arrLength(Level::events); eventIndex++)
+			{
+				if (currentLevel->events[eventIndex].scriptName[0]!=0)
+				{
+					Vector2 pos = Vector2{(float)currentLevel->events[eventIndex].cellX,(float)currentLevel->events[eventIndex].cellY} *16.f * scaledSize / FIXED_SIZE +innerWindowOffset;
+					DrawRectangleLines((int32_t)pos.x,(int32_t)pos.y, (int32_t)(int32_t)(scaledSize.x/ FIXED_SIZE.x *16.f) ,(int32_t)(scaledSize.y/FIXED_SIZE.y *16.f) , GREEN);
+				}
+			}
 			
 		}
 
 		if (mode != Mode_Console)
 		{
-			if (IsKeyPressed(KEY_P))
+			if (IsKeyPressed(KEY_P)&& IsKeyDown(KEY_LEFT_CONTROL))
 			{
 				saveLevel(currentLevelName, currentLevel);
 			}
-			if (IsKeyPressed(KEY_L))
+			if (IsKeyPressed(KEY_L)&& IsKeyDown(KEY_LEFT_CONTROL))
 			{
 				loadLevel(currentLevelName, &gameState);
 			}

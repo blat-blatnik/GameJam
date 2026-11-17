@@ -53,7 +53,7 @@ struct Level
 {
 	Vector2 startingPosition;
 	Grid grid;
-	uint32_t eventsCount;
+	uint32_t nextUnused;
 	Event events[32];
 };
 
