@@ -308,6 +308,7 @@ void GameLoop()
 		else mode = ConsoleBackupMode;
 	}
 	// The console swallows all other input keys.
+	Mode prevMode = mode;
 	if (mode != Mode_Console)
 	{
 		if (IsKeyPressed(KEY_ONE))
@@ -327,6 +328,7 @@ void GameLoop()
 			mode = Mode_Script;
 		}
 	}
+	bool modeWasSwitchedThisFrame = mode != prevMode;
 
 	// Scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
 	// This way we don't have to worry about actual window size at runtime.
@@ -717,9 +719,9 @@ void GameLoop()
 			gameState.level.events[selectedEvent].cellY =(uint32_t)selectedCell.y;
 			
 			GuiDrawText(TextFormat("cell:%i,%i",(uint32_t)selectedCell.x,(uint32_t)selectedCell.y),{8,8,128,24},TEXT_ALIGN_RIGHT,RAYWHITE);
-			if (GuiTextBox({128+4.f,8.f,128.f,24.f},script,128,true))
-			{	
-				
+			if (not modeWasSwitchedThisFrame) // Don't activate the text box on the first frame after a mode switch, otherwise it will enter "4" into the text box.
+			{
+				GuiTextBox({ 128 + 4.f, 8.f, 128.f, 24.f }, script, 128, true);
 			}
 			{
 				Vector2 pos = selectedCell *16.f * scaledSize / FIXED_SIZE +innerWindowOffset;
