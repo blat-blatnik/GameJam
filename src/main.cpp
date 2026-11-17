@@ -147,7 +147,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	}
 	else if (TextIsEqual(command, "end"))
 	{
-		CurrentScript->commandIndex = 0;
+		CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
 		CurrentScript = nullptr;
 		ScriptParagraphIndex = 0;
 		ScriptParagraphTime = 0;
@@ -269,7 +269,7 @@ void GameLoop()
 		player->invicibilityTime -= GetFrameTime();
 		player->invicibilityTime = Max(player->invicibilityTime, 0);
 
-		// Attack!
+		// Attack! (or interact)
 		if ((IsInteractButtonPressed() and player->attackTime <= 0 and gameState.numGhosts) or player->attackTime > 0)
 		{
 			if (player->attackTime <= 0) player->attackSequenceCounter++;
@@ -314,10 +314,13 @@ void GameLoop()
 				case Facing_Left: hitbox = { player->position.x - TILE_SIZE, player->position.y, TILE_SIZE, 2 * TILE_SIZE }; break;
 				case Facing_Right: hitbox = { player->position.x + TILE_SIZE, player->position.y, 2 * TILE_SIZE, 2 * TILE_SIZE }; break;
 			}
+			Vector2 hitboxCenter = { hitbox.x + hitbox.width / 2, hitbox.y + hitbox.height / 2 };
 			int minTileX = (int)floorf(hitbox.x / TILE_SIZE);
 			int minTileY = (int)floorf(hitbox.y / TILE_SIZE);
 			int maxTileX = (int)floorf((hitbox.x + hitbox.width) / TILE_SIZE);
 			int maxTileY = (int)floorf((hitbox.y + hitbox.height) / TILE_SIZE);
+			Event* closestEvent = nullptr;
+			float closestDistance = INFINITY;
 			for (int tileY = minTileY; tileY <= maxTileY; tileY++)
 			{
 				for (int tileX = minTileX; tileX <= maxTileX; tileX++)
@@ -327,11 +330,22 @@ void GameLoop()
 						Event* event = &gameState.level.events[i];
 						if (event->cellX == tileX and event->cellY == tileY and event->scriptName[0] != '\0')
 						{
-							ScriptParagraphIndex = 0;
-							CurrentScript = GetScript(event->scriptName);
+							Vector2 eventCenter = { ((float)event->cellX + 0.5f) * TILE_SIZE, ((float)event->cellY + 0.5f) * TILE_SIZE };
+							float distance = Vector2Distance(hitboxCenter, eventCenter);
+							if (distance < closestDistance)
+							{
+								closestDistance = distance;
+								closestEvent = event;
+							}
 						}
 					}
 				}
+			}
+			if (closestEvent)
+			{
+				CurrentScript = GetScript(closestEvent->scriptName);
+				ScriptParagraphIndex = 0;
+				ScriptParagraphTime = 0;
 			}
 		}
 
