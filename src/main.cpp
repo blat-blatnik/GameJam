@@ -42,7 +42,7 @@ GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = nullptr; // &IntroSlideshow;
+Slideshow* CurrentSlideshow = &IntroSlideshow;
 int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = nullptr; // &IntroScript;
+Script* CurrentScript = &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -1443,6 +1443,8 @@ int main()
 	// Load everything upfront.
 	LoadAllArt();
 	initializeGameState(&gameState);
+	ExecuteScriptCommand("music 1-piano.ogg");
+
 	// The browser wants to control the animation loop on the web.
 #ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(GameLoop, 0, false);
