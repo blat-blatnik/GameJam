@@ -663,10 +663,10 @@ void GameLoop()
 			}
 
 			// Draw healthbar.
-			float healtbarEnd = Remap(player.health, 0, 100, 0, 60);
-			DrawTexturePro(HealthbarSpritesheet, { 0, 0, 64, 8 }, { 2, 2, 64, 8 }, {}, 0, WHITE);
+			float healtbarEnd = Remap(player.health, 0, 100, 0, 106);
+			DrawTexturePro(HealthbarSpritesheet, { 0, 0, 110, 10 }, { 2, 2, 112, 10 }, {}, 0, WHITE);
 			Color healthbarTint = player.health < 25 ? Color{255,80,80,255} : WHITE;
-			DrawTexturePro(HealthbarSpritesheet, { 2, 9, healtbarEnd, 4 }, { 4, 4, healtbarEnd, 4 }, {}, 0, healthbarTint);
+			DrawTexturePro(HealthbarSpritesheet, { 2, 11, 2 + healtbarEnd, 6 }, { 4, 4, 4 + healtbarEnd, 6 }, {}, 0, healthbarTint);
 			
 			// Update and render slideshow.
 			if (CurrentSlideshow)
