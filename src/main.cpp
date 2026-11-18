@@ -77,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "bathroom.level";
+char currentLevelName[128] = "bedroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
