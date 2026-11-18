@@ -2,7 +2,7 @@
 Hey little guy, hope I didn't keep you waiting long.
 
 [Pizza]
-Maooww
+{sound s5-meow.ogg 0.6 1.1}Maooww
 
 [Jet]
 Yeah, I know, I know, I'm sorry. C'mere, let's get you all dried up and warm.
@@ -14,7 +14,7 @@ You pat the cat with your towel cautiously and awkwardly at first. Pizza's eyes 
 Sensing your hesitation, he nuzzles against your hand and turns this way and that to make drying him easier.
 
 [Pizza]
-Purrrr... prrr... mrrr
+{sound s6-meowpurr.ogg 0.6 1.0}Purrrr... prrr... mrrr
 
 [Jet]
 Aww, there we go, that's better! Look at you, you're all fluffy and warm now, right, Pizza?
@@ -35,7 +35,7 @@ Grrrrmmm.
 You too, huh? How about I scrounge us up something tasty to eat from the kitchen?
 
 [Pizza]
-Miau!
+{sound s5-meow.ogg 0.7 1.0}Miau!
 
 [Jet]
 Yeah? You'd like that? Just don't get your hopes up, little guy. The pantry's been looking pretty bleak lately.{setprogress 4}

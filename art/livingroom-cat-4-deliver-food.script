@@ -58,7 +58,7 @@ Despite your lack of appetite, you scoff down the rest of the tuna one forkful a
 There. Finished. Happy?
 
 [Pizza]
-Meow!
+{sound s5-meow.ogg 0.6 1.0}Meow!
 
 [Jet]
 Happy.
@@ -78,4 +78,4 @@ You cover him with a woolly quilt and scratch under his chin before getting up t
 Goodnight, buddy, I'm heading to bed. You'll be alright on your own?
 
 [Pizza]
-Meow!{music 3-darkncozy.ogg}{setprogress 6}
+{sound s5-meow.ogg 0.45 0.9}Meow!{music 3-darkncozy.ogg}{setprogress 6}

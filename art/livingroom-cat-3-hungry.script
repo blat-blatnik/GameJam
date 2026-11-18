@@ -1,2 +1,5 @@
 [Jet]
 Yes I know you're hungry. I'm gonna go get us something from the kitchen.
+
+[Narrator]
+You pet the cat, {sethealth 100}{sound s6-meowpurr.ogg 0.8 1.0}your sanity has been restored!

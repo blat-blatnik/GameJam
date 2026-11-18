@@ -28,4 +28,13 @@ You can't help but retch as you scrape. Your eyes water, and the veins on your n
 You are such a mess, but you did it. Teeth cleaned. Job complete. 'Well done'.
 
 [Jet]
-I feel worse than before... I need to lie back down.{setprogress 1}
+I feel worse than before...
+
+[Narrator]
+Your hear a strange thumping noise coming from the outside.
+
+It's giving you a headache.
+
+And it sounds like it's coming from the front door in the living room.{sound s5-meow.ogg 0.15ddddddd 1.0}
+
+You should go check it out. Otherwise this headache will never go away.{setprogress 1}

@@ -64,7 +64,7 @@ You scan your room for any sign of him, but are interrupted by a strange noise c
 Scrrrrk... scrrrrk...
 
 [Cat]
-Mrrrowwwww
+{sound s5-meow.ogg 0.7 0.9}Mrrrowwwww
 
 [Narrator]
 You find Pizza pawing at the door as he looks to you for help.
@@ -88,7 +88,7 @@ Psst psst psst, Pizzaaaaa. Don't you worry, I'm here; I'm not going nowhere.
 Pizza looks at you expectantly.
 
 [Pizza]
-Miau?
+{sound s5-meow.ogg 0.6 1.2}Miau?
 
 [Narrator]
 It's been ages since you spoke to someone properly. 
@@ -127,7 +127,7 @@ Pizza's a handful and a half. I hope he didn't give you too much trouble.
 No, no trouble at all, actually.
 
 [Pizza]
-Mrowww.
+{sound s5-meow.ogg 0.5 0.8}Mrowww.
 
 [Narrator]
 Pizza leaves the woman's side and reenters your apartment to sit by you.
@@ -164,7 +164,7 @@ You glance back at your apartment.
 It is neat, orderly even. But it could be better.
 
 [Pizza]
-Meowww.
+{sound s5-meow.ogg 0.6 1.0}Meowww.
 
 [Narrator]
 It could be. Yet it isn't. And that's just fine.

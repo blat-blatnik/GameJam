@@ -42,7 +42,7 @@ GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = &IntroSlideshow;
+Slideshow* CurrentSlideshow = nullptr; // &IntroSlideshow;
 int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = &IntroScript;
+Script* CurrentScript = nullptr; // &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
