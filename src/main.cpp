@@ -53,6 +53,8 @@ bool IsInteractButtonPressed()
 		IsKeyPressed(KEY_SPACE) or
 		IsKeyPressed(KEY_E) or
 		IsKeyPressed(KEY_F) or
+		IsKeyPressed(KEY_KP_0) or
+		IsKeyPressed(KEY_KP_ENTER) or
 		IsMouseButtonPressed(MOUSE_BUTTON_LEFT) or
 		IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
@@ -310,19 +312,19 @@ void GameLoop()
 			inputVelocity.y = 0;
 		}
 	}
-	if (IsKeyDown(KEY_A))
+	if (IsKeyDown(KEY_A) or IsKeyDown(KEY_KP_4) or IsKeyDown(KEY_LEFT))
 	{
 		inputVelocity.x -= 1.0f;
 	}
-	if (IsKeyDown(KEY_D))
+	if (IsKeyDown(KEY_D) or IsKeyDown(KEY_KP_6) or IsKeyDown(KEY_RIGHT))
 	{
 		inputVelocity.x += 1.0f;
 	}
-	if (IsKeyDown(KEY_W))
+	if (IsKeyDown(KEY_W) or IsKeyDown(KEY_KP_8) or IsKeyDown(KEY_UP))
 	{
 		inputVelocity.y -= 1.0f;
 	}
-	if (IsKeyDown(KEY_S))
+	if (IsKeyDown(KEY_S) or IsKeyDown(KEY_KP_2) or IsKeyDown(KEY_KP_5) or IsKeyDown(KEY_DOWN))
 	{
 		inputVelocity.y += 1.0f;
 	}
@@ -332,6 +334,7 @@ void GameLoop()
 	}
 
 	// Update.
+	bool interactInput = IsInteractButtonPressed();
 	if (not CurrentSlideshow and not CurrentScript and mode == Mode_Normal and QueuedLevelName[0] == '\0')
 	{
 		// Update player position.
@@ -396,10 +399,11 @@ void GameLoop()
 		if (player->animationFrame > 10000) player->animationFrame -= 10000; // Wrap around to 0 to avoid float imprecision.
 
 		// Attack! (or interact)
-		if ((IsInteractButtonPressed() and player->attackTime <= 0 and gameState.numGhosts) or player->attackTime > 0)
+		if ((interactInput and player->attackTime <= 0 and gameState.numGhosts) or player->attackTime > 0)
 		{
 			if (player->attackTime <= 0)
 			{
+				interactInput = false; // consume the input
 				player->attackSequenceCounter++;
 				player->animationFrame = 0;
 
@@ -455,7 +459,7 @@ void GameLoop()
 			}
 			if (attackT >= 1) player->attackTime = 0;
 		}
-		else if (IsInteractButtonPressed()) // Interact!
+		else if (interactInput) // Interact!
 		{
 			Rectangle hitbox = {};
 			switch (player->facing)
@@ -497,6 +501,7 @@ void GameLoop()
 				CurrentScript = GetScript(closestEvent->scriptName);
 				ScriptParagraphIndex = 0;
 				ScriptParagraphTime = 0;
+				interactInput = false; // consume the input
 			}
 		}
 
@@ -865,9 +870,12 @@ void GameLoop()
 
 				if (CurrentSlideAlphaIncrement > 0)
 				{
-					bool advance = IsInteractButtonPressed() and mode == Mode_Normal;
+					bool advance = interactInput and mode == Mode_Normal;
 					if (CurrentSlideAlpha >= 1 and advance)
+					{
 						CurrentSlideAlphaIncrement = -CurrentSlideAlphaIncrement;
+						interactInput = false; // consume the input
+					}
 				}
 				else
 				{
@@ -909,9 +917,10 @@ void GameLoop()
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 				if (CurrentScript) // Check again because "{end}" command can set CurrentScript to null.
 				{
-					bool advance = IsInteractButtonPressed() and mode == Mode_Normal;
+					bool advance = interactInput and mode == Mode_Normal;
 					if (advance)
 					{
+						interactInput = false; // consume the input
 						if (doneWithScriptParagraph)
 						{
 							PlaySound("s4-dialogue.mp3", RandomFloat(0.4f, 0.6f), RandomFloat(1.2f, 1.3f));

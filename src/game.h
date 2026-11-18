@@ -204,18 +204,23 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 			}
 			else
 			{
+				TraceLog(LOG_ERROR, "FAIL 1");
 				result = false;
 			}
 		}
 		else
 		{
+			TraceLog(LOG_ERROR, "FAIL 2");
 			result = false;
 		}
 	}
 	else
 	{
+		TraceLog(LOG_ERROR, "FAIL 3");
 		result = false;
 	}
+	if (result) TraceLog(LOG_INFO, "Loaded '%s'.", fileName);
+	else TraceLog(LOG_ERROR, "Failed to load '%s'.", fileName);
 	return result;
 }
 
