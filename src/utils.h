@@ -246,6 +246,10 @@ inline float RandomNormal(float mean, float sdev) // Get random float with norma
 {
 	return NormalNoise(RNGSeed, RNGIndex++, mean, sdev);
 }
+inline bool RandomCoinflip(float probTrue = 0.5f)
+{
+	return RandomFloat() <= probTrue;
+}
 
 // "Coroutines"
 
@@ -426,6 +430,20 @@ Sound GetSound(const char* filepath);
 Music GetMusic(const char* filepath);
 Script* GetScript(const char* filepath);
 Slideshow GetSlideshow(const char* filepath);
+
+// Sound
+
+inline void PlaySound(Sound sound, float volume, float pitch)
+{
+	SetSoundVolume(sound, volume);
+	SetSoundPitch(sound, pitch);
+	PlaySound(sound);
+}
+inline void PlaySound(const char* filepath, float volume = 1, float pitch = 1)
+{
+	Sound sound = GetSound(filepath);
+	PlaySound(sound, volume, pitch);
+}
 
 // Windowing
 

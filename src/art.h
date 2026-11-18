@@ -8,6 +8,8 @@
 	X(DialogBoxTexture, "dialog-box.png")\
 	X(PlayerSpritesheet, "player.png")\
 	X(HealthbarSpritesheet, "healthbar.png")\
+	X(GhostSpritesheet, "ghost.png")\
+	X(GhostAttackSpritesheet, "ghost-attack.png")\
 
 #endif
 

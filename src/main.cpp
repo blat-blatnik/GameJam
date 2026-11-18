@@ -75,6 +75,17 @@ Music NextQueuedMusic;
 float MusicFade;
 float MusicMaxVolume;
 
+// Ghost death sparkes
+
+struct GhostDeathPuff
+{
+	Vector2 position;
+	float frame;
+};
+
+GhostDeathPuff GhostDeathPuffs[16];
+int NumGhostDeathPuffs;
+
 // Script Commands
 
 char ConsoleText[512];
@@ -266,10 +277,22 @@ void GameLoop()
 		{
 			Vector2 playerVelocity = PLAYER_SPEED * inputVelocity;
 			player->position += playerVelocity * GetFrameTime();
-
-			// Update the facing direction.
 			if (playerVelocity.x != 0 or playerVelocity.y != 0)
+			{
+				// Update the facing direction.
 				player->facing = FacingFromVector(playerVelocity);
+
+				// Play footstep sounds.
+				Sound s1 = GetSound("s1-walk-fast.mp3");
+				Sound s2 = GetSound("s1-walk-medium.mp3");
+				if (not IsSoundPlaying(s1) and not IsSoundPlaying(s2))
+				{
+					if (RandomCoinflip(1.0f))
+						PlaySound(s1, RandomFloat(0.2f, 0.3f), RandomFloat(1.0f, 1.2f));
+					else
+						PlaySound(s2, RandomFloat(0.2f, 0.3f), RandomFloat(0.8f, 1.2f));
+				}
+			}
 		}
 
 		// Resolve any collisions with tiles.
@@ -305,8 +328,8 @@ void GameLoop()
 		player->invicibilityTime = Max(player->invicibilityTime, 0);
 
 		// Update animation.
-		double animationFPS = 10;
-		player->animationFrame += animationFPS * GetFrameTime();
+		double playerAnimationFPS = 10;
+		player->animationFrame += playerAnimationFPS * GetFrameTime();
 		if (player->animationFrame > 10000) player->animationFrame -= 10000; // Wrap around to 0 to avoid float imprecision.
 
 		// Attack! (or interact)
@@ -316,6 +339,11 @@ void GameLoop()
 			{
 				player->attackSequenceCounter++;
 				player->animationFrame = 0;
+
+				if (RandomCoinflip(0.50f))
+					PlaySound("s9-weapon-swing1.ogg", RandomFloat(0.5f, 0.6f), RandomFloat(0.8f, 1.2f));
+				else
+					PlaySound("s9-weapon-swing2.ogg", RandomFloat(0.5f, 0.6f), RandomFloat(0.8f, 1.2f));
 			}
 
 			player->attackTime += GetFrameTime();
@@ -345,7 +373,20 @@ void GameLoop()
 						ghost->health -= 1;
 						ghost->lastAttackSequenceCounter = player->attackSequenceCounter;
 						if (ghost->health <= 0)
+						{
+							// Spawn death puff.
+							if (NumGhostDeathPuffs < arrLength(GhostDeathPuffs))
+							{
+								GhostDeathPuff* puff = &GhostDeathPuffs[NumGhostDeathPuffs++];
+								puff->position = ghost->position;
+								puff->frame = 0;
+							}
 							gameState.ghosts[ghostIndex--] = gameState.ghosts[--gameState.numGhosts]; // Swap remove.
+							
+							// I'm not sure if I like s11... Maybe make it very unlikely to occur.
+							PlaySound("s8-ghost-explosion.ogg", RandomFloat(0.9f, 1.2f), RandomFloat(1.0f, 1.3f));
+						}
+						else PlaySound("s10-ghost-hit.ogg", RandomFloat(0.5f, 0.6f), RandomFloat(0.8f, 1.2f));
 					}
 				}
 			}
@@ -454,7 +495,10 @@ void GameLoop()
 				// Attack!
 				float distance = Vector2Length(delta);
 				if (distance < 25 and ghost->attackCooldownTime == 0)
+				{
 					ghost->attackTime += GetFrameTime();
+					PlaySound("s11-ghost-die.ogg", RandomFloat(0.5f, 0.6f), RandomFloat(1.8f, 2.0f));
+				}
 				else
 				{
 					if (distance >= TILE_SIZE)
@@ -467,44 +511,58 @@ void GameLoop()
 				}
 			}
 		}
+
+		// Update ghost puffs.
+		for (int puffIndex = 0; puffIndex < NumGhostDeathPuffs; puffIndex++)
+		{
+			GhostDeathPuff* puff = &GhostDeathPuffs[puffIndex];
+			float puffAnimationFPS = 10;
+			puff->frame += puffAnimationFPS * GetFrameTime();
+			if (puff->frame >= 6)
+				GhostDeathPuffs[puffIndex--] = GhostDeathPuffs[--NumGhostDeathPuffs]; // Swap remove.
+		}
 	}
 
-	// Toggle console with ` key (next to 1).
-	if (IsKeyPressed(KEY_GRAVE))
-	{
-		if (mode != Mode_Console)
-		{
-			ConsoleBackupMode = mode;
-			mode = Mode_Console;
-			memset(ConsoleText, 0, sizeof ConsoleText);
-		}
-		else mode = ConsoleBackupMode;
-	}
-	// The console swallows all other input keys.
 	Mode prevMode = mode;
-	if (mode != Mode_Console && IsKeyDown(KEY_LEFT_CONTROL))
+	#if DEV_MODE
 	{
-		if (IsKeyPressed(KEY_ONE))
+		// Toggle console with ` key (next to 1).
+		if (IsKeyPressed(KEY_GRAVE))
 		{
-			mode = Mode_Normal;
+			if (mode != Mode_Console)
+			{
+				ConsoleBackupMode = mode;
+				mode = Mode_Console;
+				memset(ConsoleText, 0, sizeof ConsoleText);
+			}
+			else mode = ConsoleBackupMode;
 		}
-		if (IsKeyPressed(KEY_TWO))
+		// The console swallows all other input keys.
+		if (mode != Mode_Console && IsKeyDown(KEY_LEFT_CONTROL))
 		{
-			mode = Mode_TileSelection;
-		}
-		if (IsKeyPressed(KEY_THREE))
-		{
-			mode = Mode_Paint;
-		}
-		if (IsKeyPressed(KEY_FOUR))
-		{
-			mode = Mode_Script;
-		}
-		if (IsKeyPressed(KEY_FIVE))
-		{
-			mode = Mode_GhostEdit;
+			if (IsKeyPressed(KEY_ONE))
+			{
+				mode = Mode_Normal;
+			}
+			if (IsKeyPressed(KEY_TWO))
+			{
+				mode = Mode_TileSelection;
+			}
+			if (IsKeyPressed(KEY_THREE))
+			{
+				mode = Mode_Paint;
+			}
+			if (IsKeyPressed(KEY_FOUR))
+			{
+				mode = Mode_Script;
+			}
+			if (IsKeyPressed(KEY_FIVE))
+			{
+				mode = Mode_GhostEdit;
+			}
 		}
 	}
+	#endif
 	bool modeWasSwitchedThisFrame = mode != prevMode;
 
 	// Scale the game content to fit the *actual* window size, draw it centered in the window, and add black bars.
@@ -640,13 +698,27 @@ void GameLoop()
 			}
 			#endif
 
-			// Draw enemies.
+			// Draw puffs.
+			for (int puffIndex = 0; puffIndex < NumGhostDeathPuffs; puffIndex++)
+			{
+				GhostDeathPuff puff = GhostDeathPuffs[puffIndex];
+				int frame = (int)puff.frame;
+				int offset = 96 + 16 * frame;
+				DrawTexturePro(GhostSpritesheet, { (float)offset, 0, 16, 32 }, { puff.position.x, puff.position.y, 16, 32 }, {}, 0, WHITE);
+			}
+
+			// Draw ghosts.
 			for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
 			{
 				Ghost ghost = gameState.ghosts[ghostIndex];
-				DrawRectangleV(ghost.position, { TILE_SIZE, 2 * TILE_SIZE }, ColorAlpha(RED, 0.5f));
 				if (ghost.attackTime > 0)
 				{
+					float animationFPS = 20;
+					float frameT = Clamp(ghost.attackTime / (GHOST_ATTACK_WINDUP_TIME + GHOST_ATTACK_DAMAGE_TIME + GHOST_ATTACK_WINDDOWN_TIME), 0, 1);
+					int frame = ClampInt((int)(frameT * 9), 0, 9);
+					int offset = 48 + 48 * frame;
+					DrawTexturePro(GhostAttackSpritesheet, { (float)offset, 0, 48, 64 }, { ghost.position.x - 16, ghost.position.y - 16, 48, 64 }, {}, 0, WHITE);
+
 					ClipContext clip = { ghost.attackTime };
 					float windupT = ClipTime(&clip, GHOST_ATTACK_WINDUP_TIME);
 					float attackT = ClipTime(&clip, GHOST_ATTACK_DAMAGE_TIME);
@@ -656,9 +728,18 @@ void GameLoop()
 					if (winddownT > 0) alpha = 1 - Smoothstep(winddownT);
 					else alpha = Smoothstep(windupT);
 
+					#if DEV_MODE
 					Rectangle attackHitbox = { ghost.position.x, ghost.position.y, TILE_SIZE, 2 * TILE_SIZE };
 					attackHitbox = ExpandRectangle(attackHitbox, GHOST_ATTACK_RADIUS);
-					DrawRectangleRec(attackHitbox, ColorAlpha(RED, alpha));
+					DrawRectangleRec(attackHitbox, ColorAlpha(RED, alpha * 0.5f));
+					#endif
+				}
+				else
+				{
+					float animationFPS = 10;
+					int frame = (ghostIndex + (int)fmod(GetTime() * animationFPS, 5)) % 5;
+					int offset = 16 + 16 * frame;
+					DrawTexturePro(GhostSpritesheet, { (float)offset, 0, 16, 32 }, { ghost.position.x, ghost.position.y, 16, 32 }, {}, 0, WHITE);
 				}
 			}
 
