@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = nullptr; //&IntroScript;
+Script* CurrentScript = &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -838,6 +838,8 @@ void GameLoop()
 					{
 						if (doneWithScriptParagraph)
 						{
+							PlaySound("s4-dialogue.mp3", RandomFloat(0.4f, 0.6f), RandomFloat(1.2f, 1.3f));
+
 							ScriptParagraphIndex++;
 							ScriptParagraphTime = 0;
 							CurrentScript->commandIndex = 0; // Such a mess :(
@@ -999,7 +1001,8 @@ void GameLoop()
 			}
 			if (ConsoleText[0] == '`') memmove(ConsoleText, ConsoleText + 1, sizeof ConsoleText - 1); //@HACK pressing ` to bring up the console also types ` into the text box, so just skip that.
 			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);
-		}else if (mode==Mode_Script)
+		}
+		else if (mode==Mode_Script)
 		{
 			static Vector2 selectedCell{};
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -1046,7 +1049,8 @@ void GameLoop()
 				}
 			}
 			
-		}else if (mode == Mode_GhostEdit)
+		}
+		else if (mode == Mode_GhostEdit)
 		{
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			{
