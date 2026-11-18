@@ -901,17 +901,28 @@ void GameLoop()
 			// Update and render slideshow.
 			if (CurrentSlideshow)
 			{
+				static bool backgroundChanged = true;
 				DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, BLACK);
 
 				CurrentSlideAlpha += GetFrameTime() * CurrentSlideAlphaIncrement;
 				CurrentSlideAlpha = Clamp(CurrentSlideAlpha, 0, 1);
 
 				float fadeAlpha = floorf(CurrentSlideAlpha * 6) / 6; // Quantize
-				Color fadeTint = ColorAlpha(WHITE, fadeAlpha);
+				Color fadeTint = backgroundChanged ? ColorAlpha(WHITE, fadeAlpha): WHITE;
 				Color textColor = ColorAlpha({ 209, 191, 176 }, fadeAlpha);
 
 				// Draw the slide picture.
 				Slide slide = CurrentSlideshow->slides[CurrentSlideIndex];
+				static int32_t lastSlideIndex = CurrentSlideIndex;
+				static uint32_t lastImageIndex = slide.frames[0].id;
+				if (lastSlideIndex != CurrentSlideIndex)
+				{
+					lastSlideIndex = CurrentSlideIndex;
+					backgroundChanged = lastImageIndex != slide.frames[0].id;
+					lastImageIndex = slide.frames[0].id;
+				}
+				
+				
 				Texture frame = slide.frames[0];
 				int padX = (FIXED_WIDTH - frame.width) / 2;
 				int padY = (FIXED_HEIGHT - frame.height) / 2;
