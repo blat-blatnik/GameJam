@@ -77,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "bedroom.level";
+char currentLevelName[128] = "livingroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
@@ -714,6 +714,25 @@ void GameLoop()
 				}
 			}
 
+			// Draw cat uwu
+			{
+				if (gameState.progress>= GameProgress_GotCat&& strcmp(currentLevelName,"livingroom.level")==0)
+				{
+					float offset= 0;
+					if (gameState.progress>= GameProgress_DeliveredTowel)
+					{
+						offset = 32.f;
+					}
+					if (gameState.progress> GameProgress_DeliveredTuna)
+					{
+						offset = 64.f;
+					}
+					Rectangle sourceRect = { offset, 0.f, 32.f, 32.f };
+					Rectangle destinationRect = {16.5f*16 , 6.3f*16.f, 32.f, 32.f };
+					DrawTexturePro(CatSpritesheet, sourceRect, destinationRect, {}, 0, WHITE);
+				}
+			}
+
 			// Draw player.
 			Player player = gameState.player;
 			{
@@ -1172,7 +1191,7 @@ void GameLoop()
 			gameState.level.events[selectedEvent].cellX =(uint32_t)selectedCell.x;
 			gameState.level.events[selectedEvent].cellY =(uint32_t)selectedCell.y;
 			
-			GuiDrawText(TextFormat("cell:%i,%i",(uint32_t)selectedCell.x,(uint32_t)selectedCell.y),{8,8,128,24},TEXT_ALIGN_RIGHT,RAYWHITE);
+			GuiDrawText(TextFormat("cell:%i,%i",(uint32_t)selectedCell.x,(uint32_t)selectedCell.y),{8,8,128,24},TEXT_ALIGN_LEFT,RAYWHITE);
 			if (not modeWasSwitchedThisFrame) // Don't activate the text box on the first frame after a mode switch, otherwise it will enter "4" into the text box.
 			{
 				GuiTextBox({ 128 + 4.f, 8.f, 128.f, 24.f }, script, 128, true);
