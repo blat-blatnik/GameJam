@@ -14,7 +14,7 @@ They gather all around your bed.
 They reach out to suffocate you.
 
 [Pizza]
-MIAU!
+MIAU!{slideshow bedroom.slideshow}
 
 [Narrator]
 Over the next week, the two of you remain inseparable.
@@ -185,3 +185,15 @@ No, yes... as in no.
 *Sigh*
 
 Come in, please make yourself at home.
+
+...{slideshow end.slideshow}
+
+[Narrator]
+The end!
+
+Art by KOU and Strawberry
+Programming by Blat and Oualid
+Writing by Tommy
+Music and Sound Effects by Shiroiii
+
+Thank you for playing!

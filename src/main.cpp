@@ -77,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "livingroom.level";
+char currentLevelName[128] = "bedroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
@@ -195,6 +195,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			if (not extension) filename = TextFormat("%s.slideshow", filename);
 
 			CurrentSlideshow = GetSlideshow(filename);
+			CurrentSlideIndex = 0;
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'slideshow' command.");
 	}
