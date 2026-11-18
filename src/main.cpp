@@ -928,7 +928,10 @@ void GameLoop()
 					const char* line = slide.lines[i];
 					Vector2 size = MeasureTextEx(Arial8Font, line, TEXT_SIZE, 0);
 					Vector2 center = { FIXED_WIDTH / 2, textCursorY };
-					DrawTextEx(Arial8Font, line, center - size / 2, TEXT_SIZE, 0, textColor);
+					Vector2 pos = center - size / 2;
+					pos.x = roundf(pos.x);
+					pos.y = roundf(pos.y);
+					DrawTextEx(Arial8Font, line, pos, TEXT_SIZE, 0, textColor);
 					textCursorX = center.x + size.x / 2;
 
 				}
