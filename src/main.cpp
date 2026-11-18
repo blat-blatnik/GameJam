@@ -23,6 +23,7 @@ enum Mode :uint32_t
 	Mode_Script,
 	Mode_Console,
 	Mode_GhostEdit,
+	Mode_MoveRoom,
 };
 
 static Mode mode = Mode_Normal;
@@ -76,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "test.level";
+char currentLevelName[128] = "bathroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
@@ -498,6 +499,7 @@ void GameLoop()
 			}
 			if (closestEvent)
 			{
+				const char* scriptName = closestEvent->scriptName;
 				CurrentScript = GetScript(closestEvent->scriptName);
 				ScriptParagraphIndex = 0;
 				ScriptParagraphTime = 0;
@@ -630,6 +632,10 @@ void GameLoop()
 			{
 				mode = Mode_GhostEdit;
 			}
+			if (IsKeyPressed(KEY_SIX))
+			{
+				mode = Mode_MoveRoom;
+			}
 		}
 	}
 	#endif
@@ -663,10 +669,11 @@ void GameLoop()
 	BeginDrawing();
 	{
 		ClearBackground(BLACK);
+
 		// Render game content to a fixed size SCREEN_WIDTH x SCREEN_HEIGHT texture.
 		BeginTextureMode(FixedRenderTexture);
 		{
-			ClearBackground(BLACK);
+			ClearBackground({ 57, 43, 53, 255 });
 
 			// Draw level.
 			for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
@@ -1094,7 +1101,7 @@ void GameLoop()
 			if (ConsoleText[0] == '`') memmove(ConsoleText, ConsoleText + 1, sizeof ConsoleText - 1); //@HACK pressing ` to bring up the console also types ` into the text box, so just skip that.
 			GuiSetStyle(DEFAULT, TEXT_SIZE, backupTextSize);
 		}
-		else if (mode==Mode_Script)
+		else if (mode == Mode_Script)
 		{
 			static Vector2 selectedCell{};
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -1189,6 +1196,66 @@ void GameLoop()
 			}
 
 		}
+		else if (mode == Mode_MoveRoom)
+		{
+			// Move every tile.
+			Level* level = &gameState.level;
+			Grid* grid = &level->grid;
+			int dx = 0;
+			int dy = 0;
+			if (IsKeyPressed(KEY_LEFT)) dx--;
+			if (IsKeyPressed(KEY_RIGHT)) dx++;
+			if (IsKeyPressed(KEY_UP)) dy--;
+			if (IsKeyPressed(KEY_DOWN)) dy++;
+			if (dx != 0 or dy != 0)
+			{
+				GridTile* dstTiles = grid->tiles;
+				GridTile* srcTiles = (GridTile*)MemAlloc(grid->width * grid->height * grid->layers * sizeof(GridTile));
+				memcpy(srcTiles, dstTiles, grid->width * grid->height * grid->layers * sizeof(GridTile));
+				for (int layer = 0; layer < grid->layers; layer++)
+				{
+					for (int dstY = 0; dstY < grid->height; dstY++)
+					{
+						for (int dstX = 0; dstX < grid->width; dstX++)
+						{
+							int srcY = dstY - dy;
+							int srcX = dstX - dx;
+							GridTile tile = {};
+							if (srcX >= 0 and srcX < grid->width and srcY >= 0 and srcY < grid->height)
+								tile = srcTiles[layer * grid->width * grid->height + srcY * grid->width + srcX];
+							dstTiles[layer * grid->width * grid->height + dstY * grid->width + dstX] = tile;
+						}
+					}
+				}
+				MemFree(srcTiles);
+			}
+
+			// Move all script triggers.
+			for (int i = 0; i < arrLength(level->events); i++)
+			{
+				Event* event = &level->events[i];
+				if (event->scriptName[0] != '\0')
+				{
+					event->cellX += dx;
+					event->cellY += dy;
+					if (event->cellX < 0 or event->cellX >= grid->width or event->cellY < 0 or event->cellY >= grid->height)
+						memset(event->scriptName, '\0', sizeof event->scriptName);
+				}
+			}
+
+			// Move all ghosts.
+			for (int i = 0; i < arrLength(level->ghostPositions); i++)
+			{
+				Vector2* position = &level->ghostPositions[i];
+				if (Vector2LengthSqr(*position) != 0)
+				{
+					position->x += dx * TILE_SIZE;
+					position->y += dy * TILE_SIZE;
+					if (position->x < 0 or position->x >= grid->width * TILE_SIZE or position->y < 0 or position->y >= grid->height * TILE_SIZE)
+						memset(position, 0, sizeof(*position));
+				}
+			}
+		}
 
 		if (mode != Mode_Console)
 		{
@@ -1232,6 +1299,9 @@ void GameLoop()
 				break;
 			case Mode_GhostEdit:
 				GuiDrawText("Mode Ghost edit",{32,0,128,64},0,RED);
+				break;
+			case Mode_MoveRoom:
+				GuiDrawText("Mode Room Move", { 32, 0, 128, 64 }, 0, RED);
 				break;
 			default: ;
 			}
