@@ -678,7 +678,7 @@ void GameLoop()
 
 			auto IsHackyTile = [](uint32_t tileid)
 			{
-				const uint32_t HACKY_TILES[] =
+				static const uint32_t HACKY_TILES[] =
 				{
 					58, 59, 60, // couch large
 					119, 120, // couch small
