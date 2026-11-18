@@ -346,6 +346,15 @@ inline List<char*> SplitLines(const char* string)
 	return lines;
 }
 
+// Texture
+
+inline void DrawTextureCentered(Texture texture, int centerX, int centerY, Color tint)
+{
+	int x = centerX - texture.width / 2;
+	int y = centerY - texture.height / 2;
+	DrawTexture(texture, x, y, tint);
+}
+
 // Font
 
 inline float GetLineHeight(Font font, float fontSize)

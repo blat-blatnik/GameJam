@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = nullptr; // &IntroScript;
+Script* CurrentScript = &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -686,16 +686,16 @@ void GameLoop()
 
 				const Color SPEAKER_COLOR = {122, 156, 150, 255};
 				const Color TEXT_COLOR = {209, 191, 176, 255};
-				const Rectangle TEXT_AREA = {159, 220, 222, 46};
+				const Rectangle TEXT_AREA = {160, 220, 222, 46};
 
-				DrawTexture(DialogBoxTexture, 95, 198, WHITE);
+				DrawTexture(DialogBoxTexture, 92, 198, WHITE);
 
 				const char* characterPortraitName = TextFormat("%s-%s.png", speaker, expression);
 				Texture characterPortrait = GetTexture(characterPortraitName);
-				DrawTexture(characterPortrait, 105, 209, WHITE);
+				DrawTextureCentered(characterPortrait, 125, 236, WHITE);
 
-				DrawTextEx(Arial8Font, speaker, {159 + 1, 205 + 1}, 13, 0, ColorLerp(SPEAKER_COLOR, BLACK, 0.8f));
-				DrawTextEx(Arial8Font, speaker, {159, 205}, 13, 0, SPEAKER_COLOR);
+				DrawTextEx(Arial8Font, speaker, {160 + 1, 205 + 1}, 13, 0, ColorLerp(SPEAKER_COLOR, BLACK, 0.8f));
+				DrawTextEx(Arial8Font, speaker, {160, 205}, 13, 0, SPEAKER_COLOR);
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 				if (CurrentScript) // Check again because "{end}" command can set CurrentScript to null.
 				{
@@ -717,6 +717,10 @@ void GameLoop()
 					}
 				}
 			}
+
+			// Tint everything black so tilemap selection is easier to see.
+			if (mode == Mode_TileSelection)
+				DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, ColorAlpha(BLACK, 0.5f));
 		}
 		EndTextureMode();
 
