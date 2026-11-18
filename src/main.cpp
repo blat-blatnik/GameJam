@@ -333,6 +333,7 @@ void GameLoop()
 	{
 		inputVelocity = Vector2Normalize(inputVelocity);
 	}
+	if (CurrentScript or CurrentSlideshow) inputVelocity = {0,0};
 
 	// Update.
 	bool interactInput = IsInteractButtonPressed();
@@ -465,10 +466,10 @@ void GameLoop()
 			Rectangle hitbox = {};
 			switch (player->facing)
 			{
-				case Facing_Up: hitbox = { player->position.x, player->position.y - TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE }; break;
-				case Facing_Down: hitbox = { player->position.x, player->position.y + TILE_SIZE, TILE_SIZE, 2 * TILE_SIZE }; break;
-				case Facing_Left: hitbox = { player->position.x - TILE_SIZE, player->position.y, TILE_SIZE, 2 * TILE_SIZE }; break;
-				case Facing_Right: hitbox = { player->position.x + TILE_SIZE, player->position.y, 2 * TILE_SIZE, 2 * TILE_SIZE }; break;
+				case Facing_Up: hitbox = { player->position.x, player->position.y + 0.2f * TILE_SIZE, TILE_SIZE, 0.8f * TILE_SIZE }; break;
+				case Facing_Down: hitbox = { player->position.x, player->position.y + 1.5f * TILE_SIZE, TILE_SIZE, 1.0f * TILE_SIZE }; break;
+				case Facing_Left: hitbox = { player->position.x - 0.5f * TILE_SIZE, player->position.y, 0.8f * TILE_SIZE, 1.8f * TILE_SIZE }; break;
+				case Facing_Right: hitbox = { player->position.x + 0.5f * TILE_SIZE, player->position.y, 0.8f * TILE_SIZE, 1.8f * TILE_SIZE }; break;
 			}
 			Vector2 hitboxCenter = { hitbox.x + hitbox.width / 2, hitbox.y + hitbox.height / 2 };
 			int minTileX = (int)floorf(hitbox.x / TILE_SIZE);
