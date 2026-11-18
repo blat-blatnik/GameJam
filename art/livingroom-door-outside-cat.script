@@ -48,7 +48,7 @@ There's no mistaking it; the sound is coming from the foot of the door outside.
 You steel yourself, grab the handle and, with a twist of your wrist, open it slowly.
 
 [Cat]
-Meow.
+Meow.{slideshow cat1.slideshow}
 
 [Jet]
 Oh my god, you poor thing...
@@ -87,7 +87,7 @@ After a graceful little pounce, Pizza curls up in a shivering ball at the corner
 You watch as he desperately tries to dry himself against the cushions to no avail.
 
 [Pizza]
-Mew...
+Mew...{slideshow cat2.slideshow}
 
 [Jet]
 Fine... okay, alright. You can stay the night, but not like that. I'll go get you a towel of mine from the bathroom.{music 3-darkncozy.ogg}{setprogress 2}
