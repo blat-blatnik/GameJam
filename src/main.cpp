@@ -32,9 +32,6 @@ static uint32_t nextSelectedTextureIndex = 0;
 static uint32_t selectedLayer = 0;
 #endif
 
-char currentLevelName[128] = "test.level";
-
-
 RenderTexture FixedRenderTexture{}; // Game gets rendered to this (SCREEN_WIDTH x SCREEN_HEIGHT) texture, and then upscaled.
 Vector2 MousePos{}; // Cursor position relative to the inner FIXED_SIZE screen, always within (0,0) .. FIXED_SIZE
 GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :(
@@ -74,6 +71,13 @@ Music CurrentMusic;
 Music NextQueuedMusic;
 float MusicFade;
 float MusicMaxVolume;
+
+// Room transitions
+
+char currentLevelName[128] = "test.level";
+char QueuedLevelName[128] = "";
+float LevelTransitionFade = 1;
+Vector2 QueuedLevelPlayerPosition;
 
 // Ghost death sparkes
 
@@ -147,6 +151,34 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			TextCopy(currentLevelName, filename);
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'level' command.");
+	}
+	else if (TextIsEqual(command, "enter"))
+	{
+		if (numParameters >= 3)
+		{
+			const char* filename = split[1];
+			const char* extension = GetFileExtension(filename);
+			if (not extension) filename = TextFormat("%s.level", filename);
+			TextCopy(QueuedLevelName, filename);
+			PlaySound("s2-door-open.ogg", 1, RandomFloat(0.95f, 1.05f));
+
+			// Move the player.
+			float tileX = Clamp(strtof(split[2], nullptr), 0, (float)gameState.level.grid.width);
+			float tileY = Clamp(strtof(split[3], nullptr), 0, (float)gameState.level.grid.height);
+			QueuedLevelPlayerPosition = { tileX * TILE_SIZE, (tileY - 1) * TILE_SIZE };
+
+			// End the current script.
+			if (CurrentScript)
+			{
+				CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
+				CurrentScript = nullptr;
+			}
+			ScriptParagraphIndex = 0;
+			ScriptParagraphTime = 0;
+		}
+		else if (numParameters >= 2) TraceLog(LOG_ERROR, "Missing parameter 'y' for 'enter' command.");
+		else if (numParameters >= 1) TraceLog(LOG_ERROR, "Missing parameter 'x' for 'enter' command.");
+		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'enter' command.");
 	}
 	else if (TextIsEqual(command, "sethealth"))
 	{
@@ -232,6 +264,27 @@ void GameLoop()
 		UpdateMusicStream(CurrentMusic);
 	}
 
+	// Update level transition.
+	const float LEVEL_TRANSITION_FADE_SPEED = 1;
+	if (QueuedLevelName[0] != '\0')
+	{
+		LevelTransitionFade -= GetFrameTime() * LEVEL_TRANSITION_FADE_SPEED;
+		if (LevelTransitionFade <= 0)
+		{
+			LevelTransitionFade = 0;
+			loadLevel(QueuedLevelName, &gameState);
+			TextCopy(currentLevelName, QueuedLevelName);
+			memset(QueuedLevelName, 0, sizeof QueuedLevelName);
+			
+			gameState.player.position = QueuedLevelPlayerPosition;
+		}
+	}
+	else if (LevelTransitionFade < 1)
+	{
+		LevelTransitionFade += GetFrameTime() * LEVEL_TRANSITION_FADE_SPEED;
+		LevelTransitionFade = Min(LevelTransitionFade, 1);
+	}
+
 	// Calculate input velocity.
 	Vector2 inputVelocity{};
 	if (IsGamepadAvailable(0))
@@ -269,7 +322,7 @@ void GameLoop()
 	}
 
 	// Update.
-	if (not CurrentSlideshow and not CurrentScript and mode == Mode_Normal)
+	if (not CurrentSlideshow and not CurrentScript and mode == Mode_Normal and QueuedLevelName[0] == '\0')
 	{
 		// Update player position.
 		Player* player = &gameState.player;
@@ -859,6 +912,13 @@ void GameLoop()
 			// Tint everything black so tilemap selection is easier to see.
 			if (mode == Mode_TileSelection)
 				DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, ColorAlpha(BLACK, 0.5f));
+
+			// Level transition to and from black.
+			if (LevelTransitionFade < 1)
+			{
+				float alpha = Smoothstep(1 - LevelTransitionFade);
+				DrawRectangle(0, 0, FIXED_WIDTH, FIXED_HEIGHT, ColorAlpha(BLACK, alpha));
+			}
 		}
 		EndTextureMode();
 
@@ -1147,9 +1207,6 @@ void GameLoop()
 			}
 			
 		}
-		
-		// Draw GUI on top of everything on the real window coordinates.
-		DrawFPS(10, 60);
 #endif
 	}
 	EndDrawing();
