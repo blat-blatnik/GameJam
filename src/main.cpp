@@ -194,7 +194,6 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			const char* extension = GetFileExtension(filename);
 			if (not extension) filename = TextFormat("%s.slideshow", filename);
 
-			EndCurrentScript();
 			CurrentSlideshow = GetSlideshow(filename);
 		}
 		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'slideshow' command.");
