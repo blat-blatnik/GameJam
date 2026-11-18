@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = &IntroScript;
+Script* CurrentScript = nullptr; //&IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -324,20 +324,23 @@ void GameLoop()
 			float attackT = ClipTime(&clip, PLAYER_ATTACK_DAMAGE_TIME);
 			if (attackT > 0)
 			{
-				Rectangle attackHitbox = {};
+				Vector2 playerCenter = { player->position.x + PLAYER_WIDTH_IN_TILES * TILE_SIZE / 2, player->position.y + PLAYER_HEIGHT_IN_TILES * TILE_SIZE / 2 };
+				Vector2 attackOffset = {};
+				float attackRadius = 0;
 				switch (player->facing)
 				{
-					case Facing_Up: attackHitbox = { player->position.x - TILE_SIZE, player->position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-					case Facing_Down: attackHitbox = { player->position.x - TILE_SIZE, player->position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-					case Facing_Left: attackHitbox = { player->position.x - TILE_SIZE, player->position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
-					case Facing_Right: attackHitbox = { player->position.x, player->position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+					case Facing_Up: attackOffset = { +0, -4 }; attackRadius = 20; break;
+					case Facing_Down: attackOffset = { +0, +4 }; attackRadius = 20; break;
+					case Facing_Left: attackOffset = { -8, +0 }; attackRadius = 17; break;
+					case Facing_Right: attackOffset = { +8, +0 }; attackRadius = 17; break;
 				}
+				Vector2 attackCenter = playerCenter + attackOffset;
 
 				for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
 				{
 					Ghost* ghost = &gameState.ghosts[ghostIndex];
 					Rectangle ghostHitbox = { ghost->position.x, ghost->position.y, TILE_SIZE, 2 * TILE_SIZE };
-					if (CheckCollisionRecs(attackHitbox, ghostHitbox) and ghost->lastAttackSequenceCounter != player->attackSequenceCounter)
+					if (CheckCollisionCircleRec(attackCenter, attackRadius, ghostHitbox) and ghost->lastAttackSequenceCounter != player->attackSequenceCounter)
 					{
 						ghost->health -= 1;
 						ghost->lastAttackSequenceCounter = player->attackSequenceCounter;
@@ -612,7 +615,8 @@ void GameLoop()
 				DrawTexturePro(PlayerSpritesheet, sourceRect, destinationRect, {}, 0, tint);
 			}
 
-			// Draw attack.
+			// Draw attack hitbox for debug purposes.
+			#if DEV_MODE
 			if (player.attackTime)
 			{
 				ClipContext clip = { player.attackTime };
@@ -620,17 +624,21 @@ void GameLoop()
 				float attackT = ClipTime(&clip, PLAYER_ATTACK_DAMAGE_TIME);
 				if (attackT > 0)
 				{
-					Rectangle attackHitbox = {};
+					Vector2 playerCenter = { player.position.x + PLAYER_WIDTH_IN_TILES * TILE_SIZE / 2, player.position.y + PLAYER_HEIGHT_IN_TILES * TILE_SIZE / 2 };
+					Vector2 attackOffset = {};
+					float attackRadius = 0;
 					switch (player.facing)
 					{
-					case Facing_Up: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-					case Facing_Down: attackHitbox = { player.position.x - TILE_SIZE, player.position.y + TILE_SIZE, 3 * TILE_SIZE, 2 * TILE_SIZE }; break;
-					case Facing_Left: attackHitbox = { player.position.x - TILE_SIZE, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
-					case Facing_Right: attackHitbox = { player.position.x, player.position.y - TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE }; break;
+						case Facing_Up: attackOffset = { +0, -4 }; attackRadius = 20; break;
+						case Facing_Down: attackOffset = { +0, +4 }; attackRadius = 20; break;
+						case Facing_Left: attackOffset = { -8, +0 }; attackRadius = 17; break;
+						case Facing_Right: attackOffset = { +8, +0 }; attackRadius = 17; break;
 					}
-					DrawRectangleRec(attackHitbox, ColorAlpha(RED, 0.5f));
+					Vector2 attackCenter = playerCenter + attackOffset;
+					DrawCircleV(attackCenter, attackRadius, ColorAlpha(RED, 0.5f));
 				}
 			}
+			#endif
 
 			// Draw enemies.
 			for (int ghostIndex = 0; ghostIndex < gameState.numGhosts; ghostIndex++)
