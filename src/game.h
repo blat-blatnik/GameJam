@@ -17,14 +17,15 @@ typedef uint32_t GridTile;
 
 enum GameProgress
 {
-	GameProgress_JustWokeUp = 0,
-	GameProgress_GotCat     = 1,
-	GameProgress_GetTowel   = 2,
-	GameProgress_GotTowel   = 3,
-	GameProgress_GetTuna    = 4,
-	GameProgress_GotTuna    = 5,
-	GameProgress_GoSleep    = 6,
-	GameProgress_SecondDay  = 7,
+	GameProgress_JustWokeUp   = 0,
+	GameProgress_BrushedTeeth = 1,
+	GameProgress_GotCat       = 2,
+	GameProgress_GetTowel     = 3,
+	GameProgress_GotTowel     = 4,
+	GameProgress_GetTuna      = 5,
+	GameProgress_GotTuna      = 6,
+	GameProgress_GoSleep      = 7,
+	GameProgress_SecondDay    = 8,
 	GameProgress_EnumCount
 };
 

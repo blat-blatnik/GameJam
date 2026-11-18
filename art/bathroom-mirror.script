@@ -1,2 +1,31 @@
+[Narrator]
+{ifprogress 1 bathroom-mirror-done.script}You reach for the half-used, scrunched-up tube before grabbing your blue toothbrush from the sink counter. It's as dry as can be. You focus hard on how it feels to avoid looking at yourself in the mirror.
+
+But you just can't help yourself, can you? Take a loooooong hard look at your reflection. "Start from zero?" You sure got that covered.
+
 [Jet]
-I really don't want to take another look in the mirror.
+Jesus...
+
+[Narrator]
+You add a small squirt of toothpaste before tentatively bringing the brush to your teeth. 
+
+Left. Right.
+
+How did something so simple become so hard?
+
+Back. Forth. 
+
+Your teeth start to ache.
+
+Next come the gums.
+
+The minty taste overwhelms your mouth in a nauseating way that it never used to before.
+
+And now for the tongue.
+
+You can't help but retch as you scrape. Your eyes water, and the veins on your neck feel like they've doubled–no, tripled in size. 
+
+You are such a mess, but you did it. Teeth cleaned. Job complete. 'Well done'.
+
+[Jet]
+I feel worse than before... I need to lie back down.{setprogress 1}

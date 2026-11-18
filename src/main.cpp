@@ -42,7 +42,7 @@ GameState gameState{// (oualid) idk how to pass variable to emscripting's loop :
 
 // Slideshow stuff
 
-Slideshow* CurrentSlideshow = nullptr; //&IntroSlideshow;
+Slideshow* CurrentSlideshow = nullptr; // &IntroSlideshow;
 int CurrentSlideIndex = 0;
 float CurrentSlideAlpha;
 float CurrentSlideAlphaIncrement = +1.5f;
@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = nullptr; //&IntroScript;
+Script* CurrentScript = nullptr; // &IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -77,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "hallway.level";
+char currentLevelName[128] = "bedroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
@@ -894,7 +894,7 @@ void GameLoop()
 
 				// Draw the slide text.
 				float textCursorX = 0;
-				float textCursorY = 200;
+				float textCursorY = 256;
 				const int TEXT_SIZE = 13;
 				for (int i = 0; i < slide.lines.count; i++)
 				{
