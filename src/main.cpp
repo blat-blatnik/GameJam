@@ -77,7 +77,7 @@ float MusicMaxVolume;
 
 // Room transitions
 
-char currentLevelName[128] = "bedroom.level";
+char currentLevelName[128] = "livingroom.level";
 char QueuedLevelName[128] = "";
 float LevelTransitionFade = 1;
 Vector2 QueuedLevelPlayerPosition;
@@ -676,6 +676,22 @@ void GameLoop()
 		{
 			ClearBackground({ 57, 43, 53, 255 });
 
+			auto IsHackyTile = [](uint32_t tileid)
+			{
+				const uint32_t HACKY_TILES[] =
+				{
+					58, 59, 60, // couch large
+					119, 120, // couch small
+					57, 41,//lamp
+					157, 158, 159, // tv
+					170, 200, 204,// dinning chairs
+				};
+				for (int i = 0; i < arrLength(HACKY_TILES); i++)
+					if (HACKY_TILES[i] == tileid)
+						return true;
+				return false;
+			};
+
 			// Draw level.
 			for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
 			{
@@ -684,7 +700,7 @@ void GameLoop()
 					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 					{
 						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
-						if (textureIndex!=0)
+						if (textureIndex!=0 and not IsHackyTile(textureIndex))
 						{
 							DrawTextureRec(Tilemap, Rectangle{
 								(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
@@ -755,6 +771,25 @@ void GameLoop()
 
 				Rectangle destinationRect = { player.position.x - 8, player.position.y, 32, 32 };
 				DrawTexturePro(PlayerSpritesheet, sourceRect, destinationRect, {}, 0, tint);
+			}
+
+			// Draw level (hacky tiles).
+			for (uint32_t layer = 0; layer < currentLevel->grid.layers; layer++)
+			{
+				for (uint32_t y = 0; y < currentLevel->grid.height; y++)
+				{
+					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
+					{
+						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
+						if (textureIndex != 0 and IsHackyTile(textureIndex))
+						{
+							DrawTextureRec(Tilemap, Rectangle{
+								(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
+								(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
+								}, Vector2{ x * 16.f, y * 16.f }, WHITE);
+						}
+					}
+				}
 			}
 
 			// Draw attack hitbox for debug purposes.
