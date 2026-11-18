@@ -20,14 +20,13 @@ enum GameProgress
 	GameProgress_JustWokeUp     = 0, //
 	GameProgress_BrushedTeeth   = 1, // ================ no cat on couch
 	GameProgress_GotCat         = 2, //
-	GameProgress_GetTowel       = 3, //
-	GameProgress_HaveTowel      = 4, // ================ normal cat
-	GameProgress_DeliveredTowel = 5, //
-	GameProgress_GetTuna        = 6, // ================ cat wrapped in blanket
-	GameProgress_HaveTuna       = 7, // 
-	GameProgress_DeliveredTuna  = 8, // 
-	GameProgress_GoSleep        = 9, // ================ cat wrapped in blanket with tuna can
-	GameProgress_SecondDay      = 10, // ================ also same as above, I think?
+	GameProgress_HaveTowel      = 3, // ================ normal cat
+	GameProgress_DeliveredTowel = 4, //
+	GameProgress_GetTuna        = 5, // ================ cat wrapped in blanket
+	GameProgress_HaveTuna       = 6, // 
+	GameProgress_DeliveredTuna  = 7, // 
+	GameProgress_GoSleep        = 8, // ================ cat wrapped in blanket with tuna can
+	GameProgress_SecondDay      = 9, // ================ also same as above, I think?
 	GameProgress_EnumCount
 };
 

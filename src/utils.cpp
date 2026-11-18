@@ -1,6 +1,10 @@
 #include "utils.h"
 #include "art.h"
 
+// Hacks, help meee
+
+extern Script* CurrentScript;
+
 // Assets
 
 template<class T, int Capacity> struct AssetTable
@@ -480,7 +484,7 @@ bool DrawScriptParagraph(Script* script, int paragraphIndex, Rectangle textBox, 
 		{
 			int stringIndex = codepoints[++codepointIndex];
 			char *command = &script->stringPool[stringIndex];
-			if (++commandIndex > script->commandIndex)
+			if (++commandIndex > script->commandIndex and script == CurrentScript)
 			{
 				script->commandIndex++;
 				TraceLog(LOG_INFO, "Script executing command %d: '%s'.", script->commandIndex, command);
