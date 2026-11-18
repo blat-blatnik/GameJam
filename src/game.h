@@ -192,9 +192,7 @@ static bool loadLevel(const char* fileName, GameState* gameState)
 			{
 				level->grid.tiles = (GridTile*)(data + sizeof(Level));
 				gameState->level = *level;
-				//gameState->player.position = gameState->level.startingPosition;
-				gameState->player.position.x = (gameState->level.grid.width / 2) * 16.0f;
-				gameState->player.position.y = (gameState->level.grid.height / 2) * 16.0f;
+				gameState->player.position = gameState->level.startingPosition;
 				gameState->numGhosts =0;
 				for (uint32_t i = 0; i < arrLength(Level::ghostPositions);i++)
 				{
