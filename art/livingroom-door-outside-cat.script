@@ -7,7 +7,7 @@ Scrrrrk... scrrrrk... scrrrrk...
 [Narrator]
 You're startled by a sudden, strange sound coming from downstairs. 
 
-Scrrrrk... scrrrrk... scrrrrk...
+{music 2-jubilant.ogg}Scrrrrk... scrrrrk... scrrrrk...
 
 Something is scratching at the front door, frantically trying to get in.
 
@@ -90,4 +90,4 @@ You watch as he desperately tries to dry himself against the cushions to no avai
 Mew...
 
 [Jet]
-Fine... okay, alright. You can stay the night, but not like that. I'll go get you a towel of mine from the bathroom.{setprogress 2}
+Fine... okay, alright. You can stay the night, but not like that. I'll go get you a towel of mine from the bathroom.{music 3-darkncozy.ogg}{setprogress 2}

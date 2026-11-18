@@ -66,7 +66,7 @@ Happy.
 [Narrator]
 After the meal, the two of you sit in silence for a while. Comfortable in the quiet.
 
-Eventually, Pizza slides his front legs forward and arches his back in a biiiiig stretch as he yawns.
+{music 4-toybox.ogg}Eventually, Pizza slides his front legs forward and arches his back in a biiiiig stretch as he yawns.
 
 [Jet]
 It's been a long day for you and me both.
@@ -78,4 +78,4 @@ You cover him with a woolly quilt and scratch under his chin before getting up t
 Goodnight, buddy, I'm heading to bed. You'll be alright on your own?
 
 [Pizza]
-Meow!{setprogress 6}
+Meow!{music 3-darkncozy.ogg}{setprogress 6}
