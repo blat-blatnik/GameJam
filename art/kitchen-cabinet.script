@@ -1,0 +1,2 @@
+[Jet]
+{ifprogress 6 kitchen-cabinet-3-done.script}{ifprogress 5 kitchen-cabinet-2-deliver-tuna.script}{ifprogress 4 kitchen-cabinet-1-get-tuna.script}Most of this stuff is expired.

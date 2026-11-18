@@ -1,2 +1,2 @@
 [Jet]
-{ifprogress 5 livingroom-cat-4-deliver-food.script}{ifprogress 4 livingroom-cat-3-hungry.script}{ifprogress 3 livingroom-cat-2-deliver-towel.script}{ifprogress 2 livingroom-cat-1-wet.script}We spent so much time bingeing movies here even though our tastes couldn't be any different.
+{ifprogress 6 livingroom-cat-5-sleep.script}{ifprogress 5 livingroom-cat-4-deliver-food.script}{ifprogress 4 livingroom-cat-3-hungry.script}{ifprogress 3 livingroom-cat-2-deliver-towel.script}{ifprogress 2 livingroom-cat-1-wet.script}We spent so much time bingeing movies here even though our tastes couldn't be any different.
