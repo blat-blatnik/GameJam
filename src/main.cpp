@@ -62,7 +62,7 @@ bool IsInteractButtonPressed()
 
 // Dialog script stuff
 
-Script* CurrentScript = &IntroScript;
+Script* CurrentScript = nullptr; //&IntroScript;
 int ScriptParagraphIndex ;
 float ScriptParagraphTime;
 
@@ -459,6 +459,8 @@ void GameLoop()
 						player->invicibilityTime = Max(player->invicibilityTime, PLAYER_INVINCIBILITY_TIME);
 						player->health -= GHOST_ATTACK_DAMAGE;
 						player->health = Max(player->health, 0);
+
+						PlaySound("s12-damage.ogg", 0.5f, RandomFloat(0.8f, 1.2f));
 					}
 				}
 				if (winddownT >= 1)
