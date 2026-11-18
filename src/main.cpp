@@ -708,6 +708,12 @@ void GameLoop()
 					maxFrame = 25;
 				}
 
+				// Drop shadow.
+				float shadowX = player.position.x + TILE_SIZE / 2;
+				float shadowY = player.position.y + 2 * TILE_SIZE;
+				if (player.facing == Facing_Left or player.facing == Facing_Right) shadowY -= 2;
+				DrawEllipseV({ shadowX, shadowY }, 6, 2, ColorAlpha(BLACK, 0.25f));
+
 				// Figure out which animation frame to use.
 				int frame = minFrame + (int)player.animationFrame % numFrames;
 
@@ -796,6 +802,11 @@ void GameLoop()
 					int offset = 16 + 16 * frame;
 					DrawTexturePro(GhostSpritesheet, { (float)offset, 0, 16, 32 }, { ghost.position.x, ghost.position.y, 16, 32 }, {}, 0, WHITE);
 				}
+
+				// Drop shadow.
+				float shadowX = ghost.position.x + TILE_SIZE / 2;
+				float shadowY = ghost.position.y + 2 * TILE_SIZE;
+				DrawEllipseV({ shadowX, shadowY }, 6, 2, ColorAlpha(BLACK, 0.25f));
 			}
 
 			// Draw healthbar.
