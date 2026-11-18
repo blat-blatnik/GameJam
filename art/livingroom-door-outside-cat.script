@@ -87,7 +87,7 @@ After a graceful little pounce, Pizza curls up in a shivering ball at the corner
 You watch as he desperately tries to dry himself against the cushions to no avail.
 
 [Pizza]
-Mew...{slideshow cat2.slideshow}
+Mew...{slideshow cat2.slideshow}{setprogress 2}
 
 [Jet]
-Fine... okay, alright. You can stay the night, but not like that. I'll go get you a towel of mine from the bathroom.{music 3-darkncozy.ogg}{setprogress 2}
+Fine... okay, alright. You can stay the night, but not like that. I'll go get you a towel of mine from the bathroom.{music 3-darkncozy.ogg}
