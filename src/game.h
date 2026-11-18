@@ -22,11 +22,10 @@ enum GameProgress
 	GameProgress_GotCat         = 2, //
 	GameProgress_HaveTowel      = 3, // ================ normal cat
 	GameProgress_DeliveredTowel = 4, //
-	GameProgress_GetTuna        = 5, // ================ cat wrapped in blanket
-	GameProgress_HaveTuna       = 6, // 
-	GameProgress_DeliveredTuna  = 7, // 
-	GameProgress_GoSleep        = 8, // ================ cat wrapped in blanket with tuna can
-	GameProgress_SecondDay      = 9, // ================ also same as above, I think?
+	GameProgress_HaveTuna       = 5, // 
+	GameProgress_DeliveredTuna  = 6, // 
+	GameProgress_GoSleep        = 7, // ================ cat wrapped in blanket with tuna can
+	GameProgress_SecondDay      = 8, // ================ also same as above, I think?
 	GameProgress_EnumCount
 };
 
