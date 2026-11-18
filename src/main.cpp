@@ -700,8 +700,11 @@ void GameLoop()
 					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 					{
 						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
-						if (textureIndex!=0 and not IsHackyTile(textureIndex))
+						if (textureIndex!=0)
 						{
+							if (IsHackyTile(textureIndex) and gameState.player.position.y + 32 <= y * 16 + 16)
+								continue;
+
 							DrawTextureRec(Tilemap, Rectangle{
 								(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
 								(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
@@ -781,8 +784,11 @@ void GameLoop()
 					for (uint32_t x = 0; x < currentLevel->grid.width; x++)
 					{
 						uint32_t textureIndex = getGridTile(&currentLevel->grid, x, y, layer);
-						if (textureIndex != 0 and IsHackyTile(textureIndex))
+						if (textureIndex != 0)
 						{
+							if (not (IsHackyTile(textureIndex) and gameState.player.position.y + 32 <= y * 16 + 16))
+								continue;
+
 							DrawTextureRec(Tilemap, Rectangle{
 								(float)(textureIndex % (Tilemap.width / 16)) * 16.f,
 								(float)(textureIndex / (Tilemap.width / 16)) * 16.f, 16, 16
