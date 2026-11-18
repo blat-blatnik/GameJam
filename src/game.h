@@ -34,7 +34,11 @@ struct Grid
 	uint32_t height;
 	uint32_t layers;
 	uint32_t pad;
-	GridTile* tiles;
+	union
+	{
+		GridTile* tiles;
+		uint64_t pointerPad;
+	};
 };
 
 struct Player
@@ -62,7 +66,6 @@ struct Ghost
 	float attackCooldownTime; // >0 means ghost can't attack yet
 	unsigned lastAttackSequenceCounter;
 };
-
 struct Level
 {
 	Vector2 startingPosition;
