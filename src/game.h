@@ -45,6 +45,7 @@ struct Player
 	float invicibilityTime; // >0 after being hit, while >0 no damage can be taken.
 	float attackTime; // >0 means player is in attacking state
 	unsigned attackSequenceCounter = 1; // used so enemies don't get damaged twice by the same attack
+	double animationFrame = 0;
 };
 struct Event
 {

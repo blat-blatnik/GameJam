@@ -304,10 +304,19 @@ void GameLoop()
 		player->invicibilityTime -= GetFrameTime();
 		player->invicibilityTime = Max(player->invicibilityTime, 0);
 
+		// Update animation.
+		double animationFPS = 10;
+		player->animationFrame += animationFPS * GetFrameTime();
+		if (player->animationFrame > 10000) player->animationFrame -= 10000; // Wrap around to 0 to avoid float imprecision.
+
 		// Attack! (or interact)
 		if ((IsInteractButtonPressed() and player->attackTime <= 0 and gameState.numGhosts) or player->attackTime > 0)
 		{
-			if (player->attackTime <= 0) player->attackSequenceCounter++;
+			if (player->attackTime <= 0)
+			{
+				player->attackSequenceCounter++;
+				player->animationFrame = 0;
+			}
 
 			player->attackTime += GetFrameTime();
 			ClipContext clip = { player->attackTime };
@@ -549,23 +558,59 @@ void GameLoop()
 
 			// Draw player.
 			Player player = gameState.player;
-			Vector2 uv = {};
-			switch (player.facing)
 			{
-			case Facing_Left: uv = { 0, 14 }; break;
-			case Facing_Right: uv = { 32, 14 }; break;
-			case Facing_Up: uv = { 16, 0 }; break;
-			case Facing_Down: uv = { 16, 32 }; break;
-			}
-			Rectangle rect = { player.position.x, player.position.y, 16, 32 };
-			Color tint = WHITE;
-			if (player.invicibilityTime > 0)
-			{
+				// Figure out which animation frames to use.
+				int minFrame = 0;
+				int maxFrame = 0; // inclusive
+				if (player.attackTime > 0) // Attacking
+				{
+					minFrame = 50;
+					maxFrame = 55;
+				}
+				else if (inputVelocity.x != 0 or inputVelocity.y != 0) // Moving
+				{
+					minFrame = 26;
+					maxFrame = 33;
+				}
+				else // Idle
+				{
+					minFrame = 1;
+					maxFrame = 8;
+				}
+				int numFrames = maxFrame - minFrame + 1;
+				bool flipX = player.facing == Facing_Left;
+				switch (player.facing)
+				{
+					case Facing_Down: break;
+					case Facing_Up: minFrame += 2 * numFrames; maxFrame += 2 * numFrames; break;
+					case Facing_Left:
+					case Facing_Right: minFrame += numFrames; maxFrame += numFrames; break;
+				}
+				if (player.attackTime <= 0 and inputVelocity.x == 0 and inputVelocity.y == 0 and player.facing == Facing_Up)
+				{
+					minFrame = 18; // Idle up is the only idle animation that has 7 frames instead of 8.
+					maxFrame = 25;
+				}
+
+				// Figure out which animation frame to use.
+				int frame = minFrame + (int)player.animationFrame % numFrames;
+
+				// Each player frame is 32x32.
+				int offset = frame * 32;
+				Rectangle sourceRect = { (float)offset, 0, 32, 32 };
+				if (flipX) sourceRect.width *= -1;
+
 				// Flash red while damaged.
-				float t = TriangleWave(player.invicibilityTime * 12);
-				tint = ColorLerp(ColorBrightness(WHITE, -0.5f), ColorBrightness(RED, -0.5f), t);
+				Color tint = WHITE;
+				if (player.invicibilityTime > 0)
+				{
+					float t = TriangleWave(player.invicibilityTime * 12);
+					tint = ColorLerp(ColorBrightness(WHITE, -0.5f), ColorBrightness(RED, -0.5f), t);
+				}
+
+				Rectangle destinationRect = { player.position.x - 8, player.position.y, 32, 32 };
+				DrawTexturePro(PlayerSpritesheet, sourceRect, destinationRect, {}, 0, tint);
 			}
-			DrawTexturePro(PlayerSpritesheet, { uv.x, uv.y, 16, 32 }, rect, {}, 0, tint);
 
 			// Draw attack.
 			if (player.attackTime)
@@ -655,7 +700,7 @@ void GameLoop()
 
 				if (CurrentSlideAlphaIncrement > 0)
 				{
-					bool advance = IsInteractButtonPressed();
+					bool advance = IsInteractButtonPressed() and mode == Mode_Normal;
 					if (CurrentSlideAlpha >= 1 and advance)
 						CurrentSlideAlphaIncrement = -CurrentSlideAlphaIncrement;
 				}
@@ -699,7 +744,7 @@ void GameLoop()
 				bool doneWithScriptParagraph = DrawScriptParagraph(CurrentScript, ScriptParagraphIndex, TEXT_AREA, 7, TEXT_COLOR, ColorLerp(TEXT_COLOR, BLACK, 0.8f), time);
 				if (CurrentScript) // Check again because "{end}" command can set CurrentScript to null.
 				{
-					bool advance = IsInteractButtonPressed();
+					bool advance = IsInteractButtonPressed() and mode == Mode_Normal;
 					if (advance)
 					{
 						if (doneWithScriptParagraph)
