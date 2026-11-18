@@ -78,7 +78,7 @@ inline void LoadAllArt()
 	X_SCRIPTS(LoadScript);
 	#undef LoadScript
 
-	#define LoadSlideshow(name, filepath) name = GetSlideshow(filepath);
+	#define LoadSlideshow(name, filepath) name = *GetSlideshow(filepath);
 	X_SLIDESHOWS(LoadSlideshow);
 	#undef LoadSlideshow
 }

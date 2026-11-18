@@ -95,6 +95,16 @@ int NumGhostDeathPuffs;
 char ConsoleText[512];
 Mode ConsoleBackupMode = Mode_Normal;
 
+void EndCurrentScript()
+{
+	if (CurrentScript)
+	{
+		CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
+		CurrentScript = nullptr;
+	}
+	ScriptParagraphIndex = 0;
+	ScriptParagraphTime = 0;
+}
 void ExecuteScriptCommand(const char* commandAndParams)
 {
 	int numSplit;
@@ -167,18 +177,24 @@ void ExecuteScriptCommand(const char* commandAndParams)
 			float tileY = Clamp(strtof(split[3], nullptr), 0, (float)gameState.level.grid.height);
 			QueuedLevelPlayerPosition = { tileX * TILE_SIZE, (tileY - 1) * TILE_SIZE };
 
-			// End the current script.
-			if (CurrentScript)
-			{
-				CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
-				CurrentScript = nullptr;
-			}
-			ScriptParagraphIndex = 0;
-			ScriptParagraphTime = 0;
+			EndCurrentScript();
 		}
 		else if (numParameters >= 2) TraceLog(LOG_ERROR, "Missing parameter 'y' for 'enter' command.");
 		else if (numParameters >= 1) TraceLog(LOG_ERROR, "Missing parameter 'x' for 'enter' command.");
 		else TraceLog(LOG_ERROR, "Missing parameter 'level_filename' for 'enter' command.");
+	}
+	else if (TextIsEqual(command, "slideshow"))
+	{
+		if (numParameters >= 1)
+		{
+			const char* filename = split[1];
+			const char* extension = GetFileExtension(filename);
+			if (not extension) filename = TextFormat("%s.slideshow", filename);
+
+			EndCurrentScript();
+			CurrentSlideshow = GetSlideshow(filename);
+		}
+		else TraceLog(LOG_ERROR, "Missing parameter 'filename' for 'slideshow' command.");
 	}
 	else if (TextIsEqual(command, "sethealth"))
 	{
@@ -222,13 +238,7 @@ void ExecuteScriptCommand(const char* commandAndParams)
 	}
 	else if (TextIsEqual(command, "end"))
 	{
-		if (CurrentScript)
-		{
-			CurrentScript->commandIndex = 0; // Yes, all of this stuff really needs to be reset to 0 (I think), and yes, it is a total mess :')
-			CurrentScript = nullptr;
-		}
-		ScriptParagraphIndex = 0;
-		ScriptParagraphTime = 0;
+		EndCurrentScript();
 	}
 	else TraceLog(LOG_ERROR, "Unknown command '%s'", command);
 }

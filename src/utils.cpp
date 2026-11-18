@@ -70,7 +70,7 @@ Script* GetScript(const char* filepath)
 	}
 	return script;
 }
-Slideshow GetSlideshow(const char* filepath)
+Slideshow* GetSlideshow(const char* filepath)
 {
 	Slideshow* slideshow = &SlideshowTable[filepath];
 	if (slideshow->slides.count == 0)
@@ -78,7 +78,7 @@ Slideshow GetSlideshow(const char* filepath)
 		const char* artPath = TextFormat("art/%s", filepath);
 		*slideshow = LoadSlideshow(artPath);
 	}
-	return *slideshow;
+	return slideshow;
 }
 
 // Slideshow
